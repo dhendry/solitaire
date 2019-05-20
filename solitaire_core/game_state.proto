@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+
+package solitaire.solitaire_core;
+
+enum Suit {
+    UNKNOWN_SUIT = 0;
+    CLUBS = 1;
+    DIAMONDS = 2;
+    HEARTS = 3;
+    SPADES = 4;
+}
+
+enum CardRank {
+    UNKNOWN_RANK = 0;
+    ACE = 1;
+    TWO = 2;
+    THREE = 3;
+    FOUR = 4;
+    FIVE = 5;
+    SIX = 6;
+    SEVEN = 7;
+    EIGHT = 8;
+    NINE = 9;
+    TEN = 10;
+    JACK = 11;
+    QUEEN = 12;
+    KING = 13;
+}
+
+message Card {
+    Suit suit = 1;
+    CardRank rank = 2;
+}
+
+message VisibleGameState {
+    // Bitmasks by card and suit num:
+    fixed64 talon = 1;
+
+    // Bitmasks by card num:
+    int32 suit_stack_clubs = 2;
+    int32 suit_stack_diamonds = 3;
+    int32 suit_stack_hearts = 4;
+    int32 suit_stack_spades = 5;
+
+    // Bitmasks by card and suit num:
+    repeated fixed64 build_stacks = 6; // Maximum length 7
+    repeated int32 build_stacks_num_hidden = 7; // Maximum length 7
+//    fixed64 build_stack_0 = 6;
+//    fixed64 build_stack_1 = 7;
+//    fixed64 build_stack_2 = 8;
+//    fixed64 build_stack_3 = 9;
+//    fixed64 build_stack_4 = 10;
+//    fixed64 build_stack_5 = 11;
+//    fixed64 build_stack_6 = 12;
+//
+//    int32 build_stack_0_num_hidden = 13;
+//    int32 build_stack_1_num_hidden = 14;
+//    int32 build_stack_2_num_hidden = 15;
+//    int32 build_stack_3_num_hidden = 16;
+//    int32 build_stack_4_num_hidden = 17;
+//    int32 build_stack_5_num_hidden = 18;
+//    int32 build_stack_6_num_hidden = 19;
+}
+
+message HiddenGameState {
+    repeated HiddenStack stack = 1;
+    message HiddenStack {
+        repeated Card cards = 1;
+    }
+}
+
+enum ActionType {
+    UNKNWON_ACTION = 0;
+
+    TO_SUIT_STACK_CLUBS = 1;
+    TO_SUIT_STACK_DIAMONDS = 2;
+    TO_SUIT_STACK_HEARTS = 3;
+    TO_SUIT_STACK_SPADES = 4;
+
+    TALON_CLUBS_TO_BUILD_STACK_NUM = 5;
+    TALON_DIAMONDS_TO_BUILD_STACK_NUM = 6;
+    TALON_HEARTS_TO_BUILD_STACK_NUM = 7;
+    TALON_SPADES_TO_BUILD_STACK_NUM = 8;
+
+    SUIT_STACK_CLUBS_TO_BUILD_STACK_NUM = 9;
+    SUIT_STACK_DIAMONDS_TO_BUILD_STACK_NUM = 10;
+    SUIT_STACK_HEARTS_TO_BUILD_STACK_NUM = 11;
+    SUIT_STACK_SPADES_TO_BUILD_STACK_NUM = 12;
+
+    BUILD_STACK_NUM_TO_BUILD_STACK_NUM = 13;
+}
+
+message Action {
+    ActionType type = 1;
+
+    int32 build_stack_src = 2;
+    int32 build_stack_dest = 3;
+}
+

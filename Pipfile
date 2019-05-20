@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+protobuf = "*"
+numpy = "*"
+mypy-protobuf = "*"
+
+[dev-packages]
+coverage = "*"
+pytest = "*"
+black = "==19.3b0"
+mypy-extensions = "*"
+isort = "*"
+
+[requires]
+python_version = "3.7"
