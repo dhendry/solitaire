@@ -57,10 +57,12 @@ def card_idx_to_bitmask(card_idx: int) -> int:
 
 
 def card_idx_to_suit(card_idx: int) -> Suit:
+    assert 0 <= card_idx <= MAX_CARD_IDX, card_idx
     return card_idx % 4 + 1
 
 
 def card_idx_to_rank(card_idx: int) -> CardRank:
+    assert 0 <= card_idx <= MAX_CARD_IDX, card_idx
     return card_idx // 4 + 1
 
 
