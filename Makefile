@@ -19,7 +19,6 @@ clean: ## Very basic clean functionality
 
 init: ## Initialize or update the local environment using pipenv.
 	@command -v pipenv >/dev/null 2>&1  || echo "Pipenv not installed, please install with  brew install pipenv  or appropriate"
-	@command -v git-lfs >/dev/null 2>&1 || echo "Git LFS not installed, please install with brew install git-lfs"
 	pipenv install --dev
 
 proto: ## Just run unit tests.
