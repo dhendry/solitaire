@@ -22,6 +22,7 @@ class GameTes(TestCase):
                 self.assertEqual(current_idx, game.get_card_idx(s, r))
 
                 bitmask = game.get_bitmask(s, r)
+                self.assertEqual(bitmask, game.card_idx_to_bitmask(current_idx))
 
                 # Bitmask back to idx check
                 self.assertEqual(current_idx, game.bitmask_to_card_idx(bitmask))

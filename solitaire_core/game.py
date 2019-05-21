@@ -13,15 +13,6 @@ logger = logging.getLogger(__name__)
 RED_SUITS = {DIAMONDS, HEARTS}
 BLACK_SUITS = {CLUBS, SPADES}
 
-def get_card_idx(suit: Suit, rank: CardRank) -> int:
-    assert UNKNOWN_SUIT < suit <= SPADES
-    assert UNKNOWN_RANK < rank <= KING
-    return (suit - 1) + (rank - 1) * 4
-
-
-# Inclusive
-MAX_CARD_IDX = get_card_idx(SPADES, KING)
-
 
 def bit_count(int_type):
     """
@@ -32,6 +23,16 @@ def bit_count(int_type):
         int_type &= int_type - 1
         count += 1
     return count
+
+
+def get_card_idx(suit: Suit, rank: CardRank) -> int:
+    assert UNKNOWN_SUIT < suit <= SPADES
+    assert UNKNOWN_RANK < rank <= KING
+    return (suit - 1) + (rank - 1) * 4
+
+
+# Inclusive
+MAX_CARD_IDX = get_card_idx(SPADES, KING)
 
 
 def get_bitmask(suit: Suit, rank: CardRank) -> int:
@@ -75,6 +76,11 @@ def bitmask_to_card_idxs(bitmask: int) -> List[int]:
     assert len(card_idxs) == num_bits
 
     return card_idxs
+
+
+def card_idx_to_bitmask(card_idx: int) -> int:
+    assert 0 <= card_idx <= MAX_CARD_IDX, card_idx
+    return 1 << card_idx
 
 
 def card_idx_to_card(card_idx: int) -> Card:
@@ -218,7 +224,7 @@ def deal_game(seed: int = None, is_random: bool = True):
         for buid_stack_idx in range(fill_pass, 7):
             if fill_pass == buid_stack_idx:
                 # Visible
-                gs.build_stacks[buid_stack_idx] |= (1 << card_idxs[current_card_idx])
+                gs.build_stacks[buid_stack_idx] |= card_idx_to_bitmask(card_idxs[current_card_idx])
             else:
                 # Hidden
                 hgs.stack[buid_stack_idx].cards.extend([card_idx_to_card(card_idxs[current_card_idx])])
@@ -228,7 +234,7 @@ def deal_game(seed: int = None, is_random: bool = True):
 
     # Remaining cards into the talon pile
     while current_card_idx < len(card_idxs):
-        gs.talon |= (1 << card_idxs[current_card_idx])
+        gs.talon |= card_idx_to_bitmask(card_idxs[current_card_idx])
         current_card_idx += 1
 
     logger.debug(
