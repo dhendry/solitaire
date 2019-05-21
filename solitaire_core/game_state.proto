@@ -35,17 +35,18 @@ message Card {
 
 message VisibleGameState {
     // Bitmasks by card and suit num:
-    fixed64 talon = 1;
+    uint64 talon = 1;
 
-    // Bitmasks by card num:
-    int32 suit_stack_clubs = 2;
-    int32 suit_stack_diamonds = 3;
-    int32 suit_stack_hearts = 4;
-    int32 suit_stack_spades = 5;
+    // Bitmasks by rank idx:
+    // Note that even though we could use rank index masks here that just complicates things a bunch
+//    uint64 suit_stack_clubs = 2;
+//    uint64 suit_stack_diamonds = 3;
+//    uint64 suit_stack_hearts = 4;
+//    uint64 suit_stack_spades = 5;
+    uint64 suit_stack = 2;
 
-    // Bitmasks by card and suit num:
-    repeated fixed64 build_stacks = 6; // Maximum length 7
-    repeated int32 build_stacks_num_hidden = 7; // Maximum length 7
+    repeated uint64 build_stacks = 3; // Maximum length 7
+    repeated uint32 build_stacks_num_hidden = 4; // Maximum length 7
 //    fixed64 build_stack_0 = 6;
 //    fixed64 build_stack_1 = 7;
 //    fixed64 build_stack_2 = 8;

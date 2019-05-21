@@ -117,19 +117,13 @@ class Card(google___protobuf___message___Message):
 
 class VisibleGameState(google___protobuf___message___Message):
     talon = ... # type: int
-    suit_stack_clubs = ... # type: int
-    suit_stack_diamonds = ... # type: int
-    suit_stack_hearts = ... # type: int
-    suit_stack_spades = ... # type: int
+    suit_stack = ... # type: int
     build_stacks = ... # type: google___protobuf___internal___containers___RepeatedScalarFieldContainer[int]
     build_stacks_num_hidden = ... # type: google___protobuf___internal___containers___RepeatedScalarFieldContainer[int]
 
     def __init__(self,
         talon : typing___Optional[int] = None,
-        suit_stack_clubs : typing___Optional[int] = None,
-        suit_stack_diamonds : typing___Optional[int] = None,
-        suit_stack_hearts : typing___Optional[int] = None,
-        suit_stack_spades : typing___Optional[int] = None,
+        suit_stack : typing___Optional[int] = None,
         build_stacks : typing___Optional[typing___Iterable[int]] = None,
         build_stacks_num_hidden : typing___Optional[typing___Iterable[int]] = None,
         ) -> None: ...
@@ -138,9 +132,9 @@ class VisibleGameState(google___protobuf___message___Message):
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def ClearField(self, field_name: typing_extensions___Literal[u"build_stacks",u"build_stacks_num_hidden",u"suit_stack_clubs",u"suit_stack_diamonds",u"suit_stack_hearts",u"suit_stack_spades",u"talon"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"build_stacks",u"build_stacks_num_hidden",u"suit_stack",u"talon"]) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"build_stacks",b"build_stacks_num_hidden",b"suit_stack_clubs",b"suit_stack_diamonds",b"suit_stack_hearts",b"suit_stack_spades",b"talon"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[b"build_stacks",b"build_stacks_num_hidden",b"suit_stack",b"talon"]) -> None: ...
 
 class HiddenGameState(google___protobuf___message___Message):
     class HiddenStack(google___protobuf___message___Message):
