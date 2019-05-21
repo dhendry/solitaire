@@ -1,12 +1,11 @@
+import functools
+import logging
 import random
-from typing import List, Set, Tuple
+from typing import List
+
+import numpy as np
 
 from .game_state_pb2 import *
-import numpy as np
-import functools
-import itertools
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +13,7 @@ RED_SUITS = {DIAMONDS, HEARTS}
 BLACK_SUITS = {CLUBS, SPADES}
 
 
-def bit_count(int_type):
+def bit_count(int_type: int) -> int:
     """
     From https://wiki.python.org/moin/BitManipulation
     """
@@ -31,12 +30,12 @@ def get_card_idx(suit: Suit, rank: CardRank) -> int:
     return (suit - 1) + (rank - 1) * 4
 
 
-# Inclusive
-MAX_CARD_IDX = get_card_idx(SPADES, KING)
-
-
 def get_bitmask(suit: Suit, rank: CardRank) -> int:
     return 1 << get_card_idx(suit, rank)
+
+
+# Inclusive
+MAX_CARD_IDX = get_card_idx(SPADES, KING)
 
 
 # Mask for all ranks of a particular suit
@@ -52,7 +51,29 @@ RANK_MASK = {
 }
 
 
-def bitmask_to_card_idx(bitmask: int):
+def card_idx_to_bitmask(card_idx: int) -> int:
+    assert 0 <= card_idx <= MAX_CARD_IDX, card_idx
+    return 1 << card_idx
+
+
+def card_idx_to_suit(card_idx: int) -> Suit:
+    return card_idx % 4 + 1
+
+
+def card_idx_to_rank(card_idx: int) -> CardRank:
+    return card_idx // 4 + 1
+
+
+def card_idx_to_card(card_idx: int) -> Card:
+    assert 0 <= card_idx <= MAX_CARD_IDX, card_idx
+
+    card = Card(suit=card_idx_to_suit(card_idx), rank=card_idx_to_rank(card_idx))
+    assert UNKNOWN_SUIT < card.suit <= SPADES, card
+    assert UNKNOWN_RANK < card.rank <= KING, card
+    return card
+
+
+def bitmask_to_card_idx(bitmask: int) -> int:
     assert isinstance(bitmask, int)
     assert bit_count(bitmask) == 1, bin(bitmask)
     idx = bitmask.bit_length() - 1
@@ -76,20 +97,6 @@ def bitmask_to_card_idxs(bitmask: int) -> List[int]:
     assert len(card_idxs) == num_bits
 
     return card_idxs
-
-
-def card_idx_to_bitmask(card_idx: int) -> int:
-    assert 0 <= card_idx <= MAX_CARD_IDX, card_idx
-    return 1 << card_idx
-
-
-def card_idx_to_card(card_idx: int) -> Card:
-    assert 0 <= card_idx <= MAX_CARD_IDX, card_idx
-
-    card = Card(suit=card_idx % 4 + 1, rank=card_idx // 4 + 1)
-    assert UNKNOWN_SUIT < card.suit <= SPADES, card
-    assert UNKNOWN_RANK < card.rank <= KING, card
-    return card
 
 
 def bitmask_to_cards(bitmask: int) -> List[Card]:
