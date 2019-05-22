@@ -74,28 +74,24 @@ message HiddenGameState {
 enum ActionType {
     UNKNWON_ACTION = 0;
 
-    TO_SUIT_STACK_CLUBS = 1;
-    TO_SUIT_STACK_DIAMONDS = 2;
-    TO_SUIT_STACK_HEARTS = 3;
-    TO_SUIT_STACK_SPADES = 4;
+    // Expect ony suit as additional param
+    TO_SUIT_STACK = 1;
 
-    TALON_CLUBS_TO_BUILD_STACK_NUM = 5;
-    TALON_DIAMONDS_TO_BUILD_STACK_NUM = 6;
-    TALON_HEARTS_TO_BUILD_STACK_NUM = 7;
-    TALON_SPADES_TO_BUILD_STACK_NUM = 8;
+    // Expect suit and dest build stack num as params
+    TALON_TO_BUILD_STACK_NUM = 2;
 
-    SUIT_STACK_CLUBS_TO_BUILD_STACK_NUM = 9;
-    SUIT_STACK_DIAMONDS_TO_BUILD_STACK_NUM = 10;
-    SUIT_STACK_HEARTS_TO_BUILD_STACK_NUM = 11;
-    SUIT_STACK_SPADES_TO_BUILD_STACK_NUM = 12;
+    // Expect suit and dest build stack num as parms
+    SUIT_STACK_TO_BUILD_STACK_NUM = 3;
 
-    BUILD_STACK_NUM_TO_BUILD_STACK_NUM = 13;
+    // Expect src and dest build stack num as parms
+    BUILD_STACK_NUM_TO_BUILD_STACK_NUM = 4;
 }
 
 message Action {
     ActionType type = 1;
 
-    int32 build_stack_src = 2;
-    int32 build_stack_dest = 3;
+    Suit suit = 2;
+    int32 build_stack_src = 3;
+    int32 build_stack_dest = 4;
 }
 

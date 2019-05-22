@@ -34,6 +34,11 @@ def get_bitmask(suit: Suit, rank: CardRank) -> int:
     return 1 << get_card_idx(suit, rank)
 
 
+def card_to_bitmask(card: Card) -> int:
+    assert card is not None
+    return get_bitmask(card.suit, card.rank)
+
+
 # Inclusive
 MAX_CARD_IDX = get_card_idx(SPADES, KING)
 
@@ -83,6 +88,16 @@ def bitmask_to_card_idx(bitmask: int) -> int:
     return idx
 
 
+def lowest_card_idx(bitmask: int) -> int:
+    assert bitmask >= 0, bitmask
+    return (bitmask & ~(bitmask - 1)).bit_length() - 1
+
+
+def highest_card_idx(bitmask: int) -> int:
+    assert bitmask >= 0, bitmask
+    return bitmask.bit_length() - 1
+
+
 def bitmask_to_card_idxs(bitmask: int) -> List[int]:
     assert isinstance(bitmask, int)
 
@@ -91,7 +106,7 @@ def bitmask_to_card_idxs(bitmask: int) -> List[int]:
     # Note that the returned list is sorted inherently by the process we are using here
     card_idxs = []
     while bitmask:
-        card_idxs.append(bitmask_to_card_idx(bitmask & ~(bitmask - 1)))
+        card_idxs.append(lowest_card_idx(bitmask))
 
         # Similar to the clever bit_count logic above (see link)
         bitmask &= bitmask - 1
@@ -154,11 +169,11 @@ def is_valid_game_state(gs: VisibleGameState) -> bool:
         if stack == 0:
             continue
 
-        highest_card_idx = stack.bit_length() - 1
-        assert card_idx_to_card(highest_card_idx).suit == s
+        highest_idx = highest_card_idx(stack)
+        assert card_idx_to_suit(highest_idx) == s
 
         # Fancy way to check all lower cards are present:
-        if stack != ((1 << (highest_card_idx + 1)) - 1) & SUIT_MASK[s]:
+        if stack != ((1 << (highest_idx + 1)) - 1) & SUIT_MASK[s]:
             logger.info(f"Out of order suit stack for {gs}")
             return False
 
@@ -197,19 +212,75 @@ def state_to_vec(game_state: VisibleGameState) -> np.array:
 
 
 class Game:
-    current_state: VisibleGameState
-    current_hidden_state: HiddenGameState
+    gs: VisibleGameState
+    hgs: HiddenGameState
 
     previous_states_and_actions = []
 
     def __init__(self, current_state: VisibleGameState, current_hidden_state: HiddenGameState):
-        self.current_state = current_state
-        self.current_hidden_state = current_hidden_state
+        self.gs = current_state
+        self.hgs = current_hidden_state
 
     def try_apply_action(self, action: Action, check_only: bool = False) -> bool:
 
-        if action.type == TO_SUIT_STACK_CLUBS:
-            pass
+        if action.type == TO_SUIT_STACK:
+            assert CLUBS <= action.suit <= SPADES, action.suit
+            assert 0 == action.build_stack_src
+            assert 0 == action.build_stack_dest
+
+            # Determine the card rank we are going to be looking to move:
+            highest_idx = highest_card_idx(self.gs.suit_stack & SUIT_MASK[action.suit])
+            rank = card_idx_to_rank(highest_idx) + 1 if highest_idx >= 0 else ACE
+            if rank > KING:
+                return False
+
+            # Turn the card to find into a bitmaks
+            card_bitmask_to_find = get_bitmask(action.suit, rank)
+            assert card_bitmask_to_find > 0
+
+            # Find the card to move
+            found = False
+            if card_bitmask_to_find & self.gs.talon:
+                if not check_only:
+                    # Remove from talon stack:
+                    self.gs.talon &= ~card_bitmask_to_find
+                found = True
+            else:
+                # Look through the build stacks:
+                for bidx in range(7):
+                    if not (card_bitmask_to_find & self.gs.build_stacks[bidx]):
+                        continue
+
+                    if not check_only:
+                        # Remove from build stack:
+                        self.gs.build_stacks[bidx] &= ~card_bitmask_to_find
+
+                        # Uncover hidden card if necessary:
+                        assert self.gs.build_stacks_num_hidden[bidx] == len(self.hgs.stack[bidx].cards)
+                        if self.gs.build_stacks_num_hidden[bidx] > 0:
+                            self.gs.build_stacks_num_hidden[bidx] -= 1
+                            self.gs.build_stacks[bidx] |= card_to_bitmask(self.hgs.stack[bidx].cards.pop())
+                    found = True
+                    break
+
+            if not found:
+                return False
+
+            # Mark it as moved to the suit stack
+            if not check_only:
+                self.gs.suit_stack |= card_bitmask_to_find
+
+        elif action.type == TALON_TO_BUILD_STACK_NUM:
+            assert CLUBS <= action.suit <= SPADES, action.suit
+            assert 0 == action.build_stack_src
+            assert 0 <= action.build_stack_dest <= 6
+            
+        else:
+            raise Exception(f"Unkown action {action}")
+
+
+        return True
+            # card_idx_to_rank()
         pass
 
 

@@ -6,7 +6,7 @@ import random
 
 
 def _new_gs():
-    return game.deal_game(is_random=False).current_state
+    return game.deal_game(is_random=False).gs
 
 
 class GameTes(TestCase):
@@ -91,3 +91,67 @@ class GameTes(TestCase):
         self.assertFalse(game.is_valid_game_state(gs))
         gs.suit_stack |= game.get_bitmask(game.CLUBS, game.FIVE)
         self.assertFalse(game.is_valid_game_state(gs))  # Should not pass
+
+    def test_try_apply_action_TO_SUIT_STACK(self):
+        g = game.deal_game(is_random=False)
+
+        # Make sure the game state is valid:
+        self.assertTrue(g.gs.talon & game.get_bitmask(game.CLUBS, game.ACE))
+
+        res = g.try_apply_action(game.Action(type=game.TO_SUIT_STACK, suit=game.CLUBS))
+        self.assertTrue(res)
+
+        # Make sure its been moved:
+        self.assertFalse(g.gs.talon & game.get_bitmask(game.CLUBS, game.ACE))
+        self.assertTrue(g.gs.suit_stack & game.get_bitmask(game.CLUBS, game.ACE))
+
+        # Make sure nothing else has been moved to the suit stack:
+        self.assertFalse(g.gs.suit_stack & ~game.get_bitmask(game.CLUBS, game.ACE))
+        self.assertTrue(game.is_valid_game_state(g.gs))
+
+        # Note upper parameter is exclusive - we expect the seven to be in one of the build stacks based on
+        # the non-randomized deal
+        for rank_to_move in range(game.TWO, game.SEVEN):
+            res = g.try_apply_action(game.Action(type=game.TO_SUIT_STACK, suit=game.CLUBS))
+            self.assertTrue(res)
+            self.assertTrue(game.is_valid_game_state(g.gs))
+
+        # Seven of clubs should be on the last build stack:
+        self.assertEqual(game.get_bitmask(game.CLUBS, game.SEVEN), g.gs.build_stacks[6])
+        self.assertEqual(6, g.gs.build_stacks_num_hidden[6])
+
+        # Next action should move from the last build stack:
+        res = g.try_apply_action(game.Action(type=game.TO_SUIT_STACK, suit=game.CLUBS))
+        self.assertTrue(res)
+        self.assertTrue(game.is_valid_game_state(g.gs))
+
+        # Make sure the next card in the build stack has been uncovered:
+        self.assertEqual(game.get_bitmask(game.DIAMONDS, game.SEVEN), g.gs.build_stacks[6])
+        self.assertEqual(5, g.gs.build_stacks_num_hidden[6])
+
+        # Finally move another card type:
+        res = g.try_apply_action(game.Action(type=game.TO_SUIT_STACK, suit=game.HEARTS))
+        self.assertTrue(res)
+        self.assertFalse(g.gs.talon & game.get_bitmask(game.HEARTS, game.ACE))
+        self.assertTrue(g.gs.suit_stack & game.get_bitmask(game.HEARTS, game.ACE))
+
+    def test_try_apply_action_TO_SUIT_STACK_all_cards(self):
+        g = game.deal_game(is_random=False)
+
+        # We expect the non-randomized deal to be directly solveable:
+        for r in game.CardRank.values()[1:]:
+            for s in game.Suit.values()[1:]:
+                res = g.try_apply_action(game.Action(type=game.TO_SUIT_STACK, suit=s))
+                self.assertTrue(res)
+                self.assertTrue(game.is_valid_game_state(g.gs))
+
+        self.assertEqual(0, g.gs.talon)
+        for bidx in range(7):
+            self.assertEqual(0, g.gs.build_stacks[bidx])
+            self.assertEqual(0, g.gs.build_stacks_num_hidden[bidx])
+            self.assertEqual([], g.hgs.stack[bidx].cards)
+
+        # All cards in the suit stack:
+        for r in game.CardRank.values()[1:]:
+            for s in game.Suit.values()[1:]:
+                self.assertTrue(g.gs.suit_stack & game.get_bitmask(s, r))

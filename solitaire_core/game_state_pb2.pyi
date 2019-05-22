@@ -84,19 +84,10 @@ class ActionType(int):
     @classmethod
     def items(cls) -> typing___List[typing___Tuple[str, ActionType]]: ...
 UNKNWON_ACTION = typing___cast(ActionType, 0)
-TO_SUIT_STACK_CLUBS = typing___cast(ActionType, 1)
-TO_SUIT_STACK_DIAMONDS = typing___cast(ActionType, 2)
-TO_SUIT_STACK_HEARTS = typing___cast(ActionType, 3)
-TO_SUIT_STACK_SPADES = typing___cast(ActionType, 4)
-TALON_CLUBS_TO_BUILD_STACK_NUM = typing___cast(ActionType, 5)
-TALON_DIAMONDS_TO_BUILD_STACK_NUM = typing___cast(ActionType, 6)
-TALON_HEARTS_TO_BUILD_STACK_NUM = typing___cast(ActionType, 7)
-TALON_SPADES_TO_BUILD_STACK_NUM = typing___cast(ActionType, 8)
-SUIT_STACK_CLUBS_TO_BUILD_STACK_NUM = typing___cast(ActionType, 9)
-SUIT_STACK_DIAMONDS_TO_BUILD_STACK_NUM = typing___cast(ActionType, 10)
-SUIT_STACK_HEARTS_TO_BUILD_STACK_NUM = typing___cast(ActionType, 11)
-SUIT_STACK_SPADES_TO_BUILD_STACK_NUM = typing___cast(ActionType, 12)
-BUILD_STACK_NUM_TO_BUILD_STACK_NUM = typing___cast(ActionType, 13)
+TO_SUIT_STACK = typing___cast(ActionType, 1)
+TALON_TO_BUILD_STACK_NUM = typing___cast(ActionType, 2)
+SUIT_STACK_TO_BUILD_STACK_NUM = typing___cast(ActionType, 3)
+BUILD_STACK_NUM_TO_BUILD_STACK_NUM = typing___cast(ActionType, 4)
 
 class Card(google___protobuf___message___Message):
     suit = ... # type: Suit
@@ -172,11 +163,13 @@ class HiddenGameState(google___protobuf___message___Message):
 
 class Action(google___protobuf___message___Message):
     type = ... # type: ActionType
+    suit = ... # type: Suit
     build_stack_src = ... # type: int
     build_stack_dest = ... # type: int
 
     def __init__(self,
         type : typing___Optional[ActionType] = None,
+        suit : typing___Optional[Suit] = None,
         build_stack_src : typing___Optional[int] = None,
         build_stack_dest : typing___Optional[int] = None,
         ) -> None: ...
@@ -185,6 +178,6 @@ class Action(google___protobuf___message___Message):
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def ClearField(self, field_name: typing_extensions___Literal[u"build_stack_dest",u"build_stack_src",u"type"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"build_stack_dest",u"build_stack_src",u"suit",u"type"]) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"build_stack_dest",b"build_stack_src",b"type"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[b"build_stack_dest",b"build_stack_src",b"suit",b"type"]) -> None: ...

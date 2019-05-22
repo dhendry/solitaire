@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='solitaire.solitaire_core',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x10game_state.proto\x12\x18solitaire.solitaire_core\"f\n\x04\x43\x61rd\x12,\n\x04suit\x18\x01 \x01(\x0e\x32\x1e.solitaire.solitaire_core.Suit\x12\x30\n\x04rank\x18\x02 \x01(\x0e\x32\".solitaire.solitaire_core.CardRank\"l\n\x10VisibleGameState\x12\r\n\x05talon\x18\x01 \x01(\x04\x12\x12\n\nsuit_stack\x18\x02 \x01(\x04\x12\x14\n\x0c\x62uild_stacks\x18\x03 \x03(\x04\x12\x1f\n\x17\x62uild_stacks_num_hidden\x18\x04 \x03(\r\"\x95\x01\n\x0fHiddenGameState\x12\x44\n\x05stack\x18\x01 \x03(\x0b\x32\x35.solitaire.solitaire_core.HiddenGameState.HiddenStack\x1a<\n\x0bHiddenStack\x12-\n\x05\x63\x61rds\x18\x01 \x03(\x0b\x32\x1e.solitaire.solitaire_core.Card\"o\n\x06\x41\x63tion\x12\x32\n\x04type\x18\x01 \x01(\x0e\x32$.solitaire.solitaire_core.ActionType\x12\x17\n\x0f\x62uild_stack_src\x18\x02 \x01(\x05\x12\x18\n\x10\x62uild_stack_dest\x18\x03 \x01(\x05*I\n\x04Suit\x12\x10\n\x0cUNKNOWN_SUIT\x10\x00\x12\t\n\x05\x43LUBS\x10\x01\x12\x0c\n\x08\x44IAMONDS\x10\x02\x12\n\n\x06HEARTS\x10\x03\x12\n\n\x06SPADES\x10\x04*\x9e\x01\n\x08\x43\x61rdRank\x12\x10\n\x0cUNKNOWN_RANK\x10\x00\x12\x07\n\x03\x41\x43\x45\x10\x01\x12\x07\n\x03TWO\x10\x02\x12\t\n\x05THREE\x10\x03\x12\x08\n\x04\x46OUR\x10\x04\x12\x08\n\x04\x46IVE\x10\x05\x12\x07\n\x03SIX\x10\x06\x12\t\n\x05SEVEN\x10\x07\x12\t\n\x05\x45IGHT\x10\x08\x12\x08\n\x04NINE\x10\t\x12\x07\n\x03TEN\x10\n\x12\x08\n\x04JACK\x10\x0b\x12\t\n\x05QUEEN\x10\x0c\x12\x08\n\x04KING\x10\r*\xef\x03\n\nActionType\x12\x12\n\x0eUNKNWON_ACTION\x10\x00\x12\x17\n\x13TO_SUIT_STACK_CLUBS\x10\x01\x12\x1a\n\x16TO_SUIT_STACK_DIAMONDS\x10\x02\x12\x18\n\x14TO_SUIT_STACK_HEARTS\x10\x03\x12\x18\n\x14TO_SUIT_STACK_SPADES\x10\x04\x12\"\n\x1eTALON_CLUBS_TO_BUILD_STACK_NUM\x10\x05\x12%\n!TALON_DIAMONDS_TO_BUILD_STACK_NUM\x10\x06\x12#\n\x1fTALON_HEARTS_TO_BUILD_STACK_NUM\x10\x07\x12#\n\x1fTALON_SPADES_TO_BUILD_STACK_NUM\x10\x08\x12\'\n#SUIT_STACK_CLUBS_TO_BUILD_STACK_NUM\x10\t\x12*\n&SUIT_STACK_DIAMONDS_TO_BUILD_STACK_NUM\x10\n\x12(\n$SUIT_STACK_HEARTS_TO_BUILD_STACK_NUM\x10\x0b\x12(\n$SUIT_STACK_SPADES_TO_BUILD_STACK_NUM\x10\x0c\x12&\n\"BUILD_STACK_NUM_TO_BUILD_STACK_NUM\x10\rb\x06proto3')
+  serialized_pb=_b('\n\x10game_state.proto\x12\x18solitaire.solitaire_core\"f\n\x04\x43\x61rd\x12,\n\x04suit\x18\x01 \x01(\x0e\x32\x1e.solitaire.solitaire_core.Suit\x12\x30\n\x04rank\x18\x02 \x01(\x0e\x32\".solitaire.solitaire_core.CardRank\"l\n\x10VisibleGameState\x12\r\n\x05talon\x18\x01 \x01(\x04\x12\x12\n\nsuit_stack\x18\x02 \x01(\x04\x12\x14\n\x0c\x62uild_stacks\x18\x03 \x03(\x04\x12\x1f\n\x17\x62uild_stacks_num_hidden\x18\x04 \x03(\r\"\x95\x01\n\x0fHiddenGameState\x12\x44\n\x05stack\x18\x01 \x03(\x0b\x32\x35.solitaire.solitaire_core.HiddenGameState.HiddenStack\x1a<\n\x0bHiddenStack\x12-\n\x05\x63\x61rds\x18\x01 \x03(\x0b\x32\x1e.solitaire.solitaire_core.Card\"\x9d\x01\n\x06\x41\x63tion\x12\x32\n\x04type\x18\x01 \x01(\x0e\x32$.solitaire.solitaire_core.ActionType\x12,\n\x04suit\x18\x02 \x01(\x0e\x32\x1e.solitaire.solitaire_core.Suit\x12\x17\n\x0f\x62uild_stack_src\x18\x03 \x01(\x05\x12\x18\n\x10\x62uild_stack_dest\x18\x04 \x01(\x05*I\n\x04Suit\x12\x10\n\x0cUNKNOWN_SUIT\x10\x00\x12\t\n\x05\x43LUBS\x10\x01\x12\x0c\n\x08\x44IAMONDS\x10\x02\x12\n\n\x06HEARTS\x10\x03\x12\n\n\x06SPADES\x10\x04*\x9e\x01\n\x08\x43\x61rdRank\x12\x10\n\x0cUNKNOWN_RANK\x10\x00\x12\x07\n\x03\x41\x43\x45\x10\x01\x12\x07\n\x03TWO\x10\x02\x12\t\n\x05THREE\x10\x03\x12\x08\n\x04\x46OUR\x10\x04\x12\x08\n\x04\x46IVE\x10\x05\x12\x07\n\x03SIX\x10\x06\x12\t\n\x05SEVEN\x10\x07\x12\t\n\x05\x45IGHT\x10\x08\x12\x08\n\x04NINE\x10\t\x12\x07\n\x03TEN\x10\n\x12\x08\n\x04JACK\x10\x0b\x12\t\n\x05QUEEN\x10\x0c\x12\x08\n\x04KING\x10\r*\x9c\x01\n\nActionType\x12\x12\n\x0eUNKNWON_ACTION\x10\x00\x12\x11\n\rTO_SUIT_STACK\x10\x01\x12\x1c\n\x18TALON_TO_BUILD_STACK_NUM\x10\x02\x12!\n\x1dSUIT_STACK_TO_BUILD_STACK_NUM\x10\x03\x12&\n\"BUILD_STACK_NUM_TO_BUILD_STACK_NUM\x10\x04\x62\x06proto3')
 )
 
 _SUIT = _descriptor.EnumDescriptor(
@@ -53,8 +53,8 @@ _SUIT = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=525,
-  serialized_end=598,
+  serialized_start=572,
+  serialized_end=645,
 )
 _sym_db.RegisterEnumDescriptor(_SUIT)
 
@@ -124,8 +124,8 @@ _CARDRANK = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=601,
-  serialized_end=759,
+  serialized_start=648,
+  serialized_end=806,
 )
 _sym_db.RegisterEnumDescriptor(_CARDRANK)
 
@@ -141,62 +141,26 @@ _ACTIONTYPE = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='TO_SUIT_STACK_CLUBS', index=1, number=1,
+      name='TO_SUIT_STACK', index=1, number=1,
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='TO_SUIT_STACK_DIAMONDS', index=2, number=2,
+      name='TALON_TO_BUILD_STACK_NUM', index=2, number=2,
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='TO_SUIT_STACK_HEARTS', index=3, number=3,
+      name='SUIT_STACK_TO_BUILD_STACK_NUM', index=3, number=3,
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='TO_SUIT_STACK_SPADES', index=4, number=4,
-      serialized_options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='TALON_CLUBS_TO_BUILD_STACK_NUM', index=5, number=5,
-      serialized_options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='TALON_DIAMONDS_TO_BUILD_STACK_NUM', index=6, number=6,
-      serialized_options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='TALON_HEARTS_TO_BUILD_STACK_NUM', index=7, number=7,
-      serialized_options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='TALON_SPADES_TO_BUILD_STACK_NUM', index=8, number=8,
-      serialized_options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='SUIT_STACK_CLUBS_TO_BUILD_STACK_NUM', index=9, number=9,
-      serialized_options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='SUIT_STACK_DIAMONDS_TO_BUILD_STACK_NUM', index=10, number=10,
-      serialized_options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='SUIT_STACK_HEARTS_TO_BUILD_STACK_NUM', index=11, number=11,
-      serialized_options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='SUIT_STACK_SPADES_TO_BUILD_STACK_NUM', index=12, number=12,
-      serialized_options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='BUILD_STACK_NUM_TO_BUILD_STACK_NUM', index=13, number=13,
+      name='BUILD_STACK_NUM_TO_BUILD_STACK_NUM', index=4, number=4,
       serialized_options=None,
       type=None),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=762,
-  serialized_end=1257,
+  serialized_start=809,
+  serialized_end=965,
 )
 _sym_db.RegisterEnumDescriptor(_ACTIONTYPE)
 
@@ -221,19 +185,10 @@ JACK = 11
 QUEEN = 12
 KING = 13
 UNKNWON_ACTION = 0
-TO_SUIT_STACK_CLUBS = 1
-TO_SUIT_STACK_DIAMONDS = 2
-TO_SUIT_STACK_HEARTS = 3
-TO_SUIT_STACK_SPADES = 4
-TALON_CLUBS_TO_BUILD_STACK_NUM = 5
-TALON_DIAMONDS_TO_BUILD_STACK_NUM = 6
-TALON_HEARTS_TO_BUILD_STACK_NUM = 7
-TALON_SPADES_TO_BUILD_STACK_NUM = 8
-SUIT_STACK_CLUBS_TO_BUILD_STACK_NUM = 9
-SUIT_STACK_DIAMONDS_TO_BUILD_STACK_NUM = 10
-SUIT_STACK_HEARTS_TO_BUILD_STACK_NUM = 11
-SUIT_STACK_SPADES_TO_BUILD_STACK_NUM = 12
-BUILD_STACK_NUM_TO_BUILD_STACK_NUM = 13
+TO_SUIT_STACK = 1
+TALON_TO_BUILD_STACK_NUM = 2
+SUIT_STACK_TO_BUILD_STACK_NUM = 3
+BUILD_STACK_NUM_TO_BUILD_STACK_NUM = 4
 
 
 
@@ -403,15 +358,22 @@ _ACTION = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='build_stack_src', full_name='solitaire.solitaire_core.Action.build_stack_src', index=1,
-      number=2, type=5, cpp_type=1, label=1,
+      name='suit', full_name='solitaire.solitaire_core.Action.suit', index=1,
+      number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='build_stack_dest', full_name='solitaire.solitaire_core.Action.build_stack_dest', index=2,
+      name='build_stack_src', full_name='solitaire.solitaire_core.Action.build_stack_src', index=2,
       number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='build_stack_dest', full_name='solitaire.solitaire_core.Action.build_stack_dest', index=3,
+      number=4, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -428,8 +390,8 @@ _ACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=412,
-  serialized_end=523,
+  serialized_start=413,
+  serialized_end=570,
 )
 
 _CARD.fields_by_name['suit'].enum_type = _SUIT
@@ -438,6 +400,7 @@ _HIDDENGAMESTATE_HIDDENSTACK.fields_by_name['cards'].message_type = _CARD
 _HIDDENGAMESTATE_HIDDENSTACK.containing_type = _HIDDENGAMESTATE
 _HIDDENGAMESTATE.fields_by_name['stack'].message_type = _HIDDENGAMESTATE_HIDDENSTACK
 _ACTION.fields_by_name['type'].enum_type = _ACTIONTYPE
+_ACTION.fields_by_name['suit'].enum_type = _SUIT
 DESCRIPTOR.message_types_by_name['Card'] = _CARD
 DESCRIPTOR.message_types_by_name['VisibleGameState'] = _VISIBLEGAMESTATE
 DESCRIPTOR.message_types_by_name['HiddenGameState'] = _HIDDENGAMESTATE
