@@ -2,8 +2,8 @@ import itertools
 
 from solitaire_core import game
 
-WIDTH = 24 * 3 + 5
-HEIGHT = 50
+WIDTH = 24 * 3
+HEIGHT = 42
 
 
 def _suit_symb(suit: game.Suit) -> str:
@@ -42,17 +42,34 @@ def _rank_symb(rank: game.CardRank) -> str:
 
 
 def _draw(screen, string, x, y):
-
     row = screen[y]
     for i, c in enumerate(string):
         row[x + i] = c
+
+
+def _draw_card(screen, x: int, y: int, suit: game.Suit = None, rank: game.CardRank = None):
+    """
+    X and Y for top left corner
+    """
+    _draw(screen, "+-----+", x, y)
+    for i in range(1, 4):
+        screen[y + i][x] = "|"
+        screen[y + i][x + 6] = "|"
+
+    if rank:
+        _draw(screen, _rank_symb(rank).ljust(2), x + 2, y + 1)
+
+    if suit:
+        _draw(screen, _suit_symb(suit), x + 4, y + 1)
+
+    _draw(screen, "+-----+", x, y + 4)
 
 
 def render(gs: game.VisibleGameState) -> str:
     screen = [[" "] * WIDTH for _ in range(HEIGHT)]
 
     # Talon:
-    talon_height_offset = 1
+    talon_height_offset = 0
     for i, card in enumerate(reversed(game.bitmask_to_cards(gs.talon))):
         left_offset = WIDTH - 3 * (i + 1)
         _draw(screen, "+--", left_offset, talon_height_offset)
@@ -62,20 +79,26 @@ def render(gs: game.VisibleGameState) -> str:
         _draw(screen, "|", left_offset, talon_height_offset + 4)
         _draw(screen, "+--", left_offset, talon_height_offset + 5)
 
-    build_height_offset = talon_height_offset + 5 + 2
+    # Suit stacks:
+    suit_height_offset = 6
+    suit_left_offset = 1
+    for i, suit in enumerate(game.Suit.values()[1:]):
+        _draw_card(
+            screen,
+            suit_left_offset,
+            suit_height_offset + i * 6,
+            suit=suit,
+            rank=game.card_idx_to_rank(game.highest_card_idx(gs.suit_stack & game.SUIT_MASK[suit])),
+        )
 
+    # Build stacks
+    build_height_offset = talon_height_offset + 5 + 1
     for build_idx in range(7):
-        build_left_offset = 1 + build_idx * 9
+        build_left_offset = 1 + build_idx * 9 + 9
 
         stack_v_offset = build_height_offset
 
-        # _draw(screen, "+-----+", build_left_offset, stack_v_offset)
-        # stack_v_offset += 1
-
         for _ in range(gs.build_stacks_num_hidden[build_idx]):
-            # for _ in range(1):
-            #     _draw(screen, "|" + (" " * 5) + "|", build_left_offset, stack_v_offset)
-            #     stack_v_offset += 1
             _draw(screen, "+-----+", build_left_offset, stack_v_offset)
             stack_v_offset += 1
 
@@ -84,12 +107,10 @@ def render(gs: game.VisibleGameState) -> str:
 
         for i, card in enumerate(reversed(game.bitmask_to_cards(gs.build_stacks[build_idx]))):
             _draw(screen, "+-----+", build_left_offset, stack_v_offset)
-            # stack_v_offset += 1
-            # _draw(screen, "|     |", build_left_offset, stack_v_offset)
             stack_v_offset += 1
             _draw(
                 screen,
-                "| " + _rank_symb(card.rank).ljust(2)  + _suit_symb(card.suit) + " |",
+                "| " + _rank_symb(card.rank).ljust(2) + _suit_symb(card.suit) + " |",
                 build_left_offset,
                 stack_v_offset,
             )
@@ -98,7 +119,6 @@ def render(gs: game.VisibleGameState) -> str:
                 _draw(screen, "|     |", build_left_offset, stack_v_offset)
                 stack_v_offset += 1
             _draw(screen, "+-----+", build_left_offset, stack_v_offset)
-
 
             stack_v_offset -= 2
 

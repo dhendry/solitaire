@@ -67,6 +67,9 @@ def card_idx_to_suit(card_idx: int) -> Suit:
 
 
 def card_idx_to_rank(card_idx: int) -> CardRank:
+    if card_idx == -1:
+        return UNKNOWN_RANK
+
     assert 0 <= card_idx <= MAX_CARD_IDX, card_idx
     return card_idx // 4 + 1
 
