@@ -52,6 +52,10 @@ class GameTes(TestCase):
 
         self.assertEqual(list(range(52)), game.bitmask_to_card_idxs(all_cards_bitmask))
 
+    def test_lowest_higest(self):
+        self.assertEqual(-1, game.lowest_card_idx(0))
+        self.assertEqual(-1, game.highest_card_idx(0))
+
     def test_bitmask_to_card_idxs(self):
         card_idxs_chosen = set()
         bitmask = 0
@@ -129,6 +133,11 @@ class GameTes(TestCase):
         self.assertEqual(game.get_bitmask(game.DIAMONDS, game.SEVEN), g.gs.build_stacks[6])
         self.assertEqual(5, g.gs.build_stacks_num_hidden[6])
 
+        # Cant move another club
+        res = g.try_apply_action(game.Action(type=game.TO_SUIT_STACK, suit=game.CLUBS))
+        self.assertFalse(res)
+        self.assertTrue(game.is_valid_game_state(g.gs))
+
         # Finally move another card type:
         res = g.try_apply_action(game.Action(type=game.TO_SUIT_STACK, suit=game.HEARTS))
         self.assertTrue(res)
@@ -145,13 +154,49 @@ class GameTes(TestCase):
                 self.assertTrue(res)
                 self.assertTrue(game.is_valid_game_state(g.gs))
 
+        # Cant apply any more:
+        for s in game.Suit.values()[1:]:
+            res = g.try_apply_action(game.Action(type=game.TO_SUIT_STACK, suit=s))
+            self.assertFalse(res)
+            self.assertTrue(game.is_valid_game_state(g.gs))
+
         self.assertEqual(0, g.gs.talon)
         for bidx in range(7):
             self.assertEqual(0, g.gs.build_stacks[bidx])
             self.assertEqual(0, g.gs.build_stacks_num_hidden[bidx])
-            self.assertEqual([], g.hgs.stack[bidx].cards)
+            self.assertEqual([], list(g.hgs.stack[bidx].cards))
 
         # All cards in the suit stack:
         for r in game.CardRank.values()[1:]:
             for s in game.Suit.values()[1:]:
                 self.assertTrue(g.gs.suit_stack & game.get_bitmask(s, r))
+
+    def test_try_apply_action_TALON_TO_BUILD_STACK_NUM(self):
+        g = game.deal_game(is_random=False)
+
+        # Expect the 7 of clubs on the last build stack:
+        self.assertTrue(g.gs.build_stacks[6] == game.get_bitmask(game.CLUBS, game.SEVEN))
+
+        # A couple which should not work :
+        self.assertFalse(g.try_apply_action(
+            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.SPADES, build_stack_dest=1)
+        ))
+        self.assertFalse(g.try_apply_action(
+            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=3)
+        ))
+
+        # Setup a build stack:
+        for _ in range(3):
+            self.assertTrue(g.try_apply_action(
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=6)
+            ))
+            self.assertTrue(game.is_valid_game_state(g.gs))
+            self.assertTrue(g.try_apply_action(
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=6)
+            ))
+            self.assertTrue(game.is_valid_game_state(g.gs))
+
+        self.assertFalse(g.try_apply_action(
+            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=6)
+        ))
+        self.assertTrue(game.is_valid_game_state(g.gs))

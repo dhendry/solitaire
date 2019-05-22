@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-
 package solitaire.solitaire_core;
 
 enum Suit {
@@ -37,35 +36,14 @@ message VisibleGameState {
     // Bitmasks by card and suit num:
     uint64 talon = 1;
 
-    // Bitmasks by rank idx:
-    // Note that even though we could use rank index masks here that just complicates things a bunch
-//    uint64 suit_stack_clubs = 2;
-//    uint64 suit_stack_diamonds = 3;
-//    uint64 suit_stack_hearts = 4;
-//    uint64 suit_stack_spades = 5;
     uint64 suit_stack = 2;
 
-    repeated uint64 build_stacks = 3; // Maximum length 7
-    repeated uint32 build_stacks_num_hidden = 4; // Maximum length 7
-//    fixed64 build_stack_0 = 6;
-//    fixed64 build_stack_1 = 7;
-//    fixed64 build_stack_2 = 8;
-//    fixed64 build_stack_3 = 9;
-//    fixed64 build_stack_4 = 10;
-//    fixed64 build_stack_5 = 11;
-//    fixed64 build_stack_6 = 12;
-//
-//    int32 build_stack_0_num_hidden = 13;
-//    int32 build_stack_1_num_hidden = 14;
-//    int32 build_stack_2_num_hidden = 15;
-//    int32 build_stack_3_num_hidden = 16;
-//    int32 build_stack_4_num_hidden = 17;
-//    int32 build_stack_5_num_hidden = 18;
-//    int32 build_stack_6_num_hidden = 19;
+    repeated uint64 build_stacks = 3; // length 7 expected
+    repeated uint32 build_stacks_num_hidden = 4; // length 7 expected
 }
 
 message HiddenGameState {
-    repeated HiddenStack stack = 1;
+    repeated HiddenStack stack = 1; // length 7 expected
     message HiddenStack {
         repeated Card cards = 1;
     }

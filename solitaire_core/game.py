@@ -129,6 +129,8 @@ def is_valid_game_state(gs: VisibleGameState) -> bool:
         logger.info(f"Bad num build_stacks_num_hidden for {gs}")
         return False
 
+    # TODO: check max number of cards in the talon stack
+
     # Check that there are no duplicate cards anywhere
     seen_cards = 0
     for visible_stack in [gs.talon, gs.suit_stack, *gs.build_stacks]:
@@ -182,7 +184,7 @@ def is_valid_game_state(gs: VisibleGameState) -> bool:
         if stack == 0:
             continue
 
-        # Could optimize this to not use card objects but... meh, seems premature
+        # Could optimize this to not use card objects but... meh
         previous_card = None
         for card in bitmask_to_cards(stack):
             if previous_card is None:
@@ -221,8 +223,12 @@ class Game:
         self.gs = current_state
         self.hgs = current_hidden_state
 
-    def try_apply_action(self, action: Action, check_only: bool = False) -> bool:
+    def apply_action(self, action: Action):
+        result = self.try_apply_action(action)
+        if not result:
+            raise Exception(f"Could not apply action {action}")
 
+    def try_apply_action(self, action: Action, check_only: bool = False) -> bool:
         if action.type == TO_SUIT_STACK:
             assert CLUBS <= action.suit <= SPADES, action.suit
             assert 0 == action.build_stack_src
@@ -241,9 +247,10 @@ class Game:
             # Find the card to move
             found = False
             if card_bitmask_to_find & self.gs.talon:
-                if not check_only:
-                    # Remove from talon stack:
-                    self.gs.talon &= ~card_bitmask_to_find
+                if check_only:
+                    return True
+                # Remove from talon stack:
+                self.gs.talon &= ~card_bitmask_to_find
                 found = True
             else:
                 # Look through the build stacks:
@@ -251,15 +258,17 @@ class Game:
                     if not (card_bitmask_to_find & self.gs.build_stacks[bidx]):
                         continue
 
-                    if not check_only:
-                        # Remove from build stack:
-                        self.gs.build_stacks[bidx] &= ~card_bitmask_to_find
+                    if check_only:
+                        return True
 
-                        # Uncover hidden card if necessary:
-                        assert self.gs.build_stacks_num_hidden[bidx] == len(self.hgs.stack[bidx].cards)
-                        if self.gs.build_stacks_num_hidden[bidx] > 0:
-                            self.gs.build_stacks_num_hidden[bidx] -= 1
-                            self.gs.build_stacks[bidx] |= card_to_bitmask(self.hgs.stack[bidx].cards.pop())
+                    # Remove from build stack:
+                    self.gs.build_stacks[bidx] &= ~card_bitmask_to_find
+
+                    # Uncover hidden card if necessary:
+                    assert self.gs.build_stacks_num_hidden[bidx] == len(self.hgs.stack[bidx].cards)
+                    if self.gs.build_stacks_num_hidden[bidx] > 0:
+                        self.gs.build_stacks_num_hidden[bidx] -= 1
+                        self.gs.build_stacks[bidx] |= card_to_bitmask(self.hgs.stack[bidx].cards.pop())
                     found = True
                     break
 
@@ -267,20 +276,46 @@ class Game:
                 return False
 
             # Mark it as moved to the suit stack
-            if not check_only:
-                self.gs.suit_stack |= card_bitmask_to_find
+            assert not check_only
+            self.gs.suit_stack |= card_bitmask_to_find
 
         elif action.type == TALON_TO_BUILD_STACK_NUM:
             assert CLUBS <= action.suit <= SPADES, action.suit
             assert 0 == action.build_stack_src
             assert 0 <= action.build_stack_dest <= 6
-            
+
+            # Determine the card rank we are going to be looking to move:
+            lowest_idx = lowest_card_idx(self.gs.build_stacks[action.build_stack_dest])
+            rank = card_idx_to_rank(lowest_idx) - 1 if lowest_idx >= 0 else KING
+
+            if rank < ACE:
+                return False
+
+            # This is the bitmask:
+            card_to_move = get_bitmask(action.suit, rank)
+
+            # Check the card to move is actually in the talon pile
+            if self.gs.talon & card_to_move == 0:
+                # Appropriate rank in requested suit is not in the talon pile
+                return False
+
+            # Check the colors
+            if lowest_idx >= 0 and card_idx_to_suit(lowest_idx) not in (
+                RED_SUITS if action.suit in BLACK_SUITS else BLACK_SUITS
+            ):
+                # Bottom of the build stack is not the appropriate color
+                return False
+
+            if check_only:
+                return True
+
+            self.gs.talon &= ~card_to_move
+            self.gs.build_stacks[action.build_stack_dest] |= card_to_move
         else:
             raise Exception(f"Unkown action {action}")
 
-
         return True
-            # card_idx_to_rank()
+        # card_idx_to_rank()
         pass
 
 
