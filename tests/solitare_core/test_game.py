@@ -184,17 +184,33 @@ class GameTes(TestCase):
         self.assertFalse(g.try_apply_action(
             game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=3)
         ))
+        self.assertFalse(g.try_apply_action(
+            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=6)
+        ))
 
-        # Setup a build stack:
+        # Setup build stack 6 (root card being the 7 of clubs)
         for _ in range(3):
             self.assertTrue(g.try_apply_action(
                 game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=6)
             ))
             self.assertTrue(game.is_valid_game_state(g.gs))
+            self.assertFalse(g.try_apply_action(
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=6)
+            ))
+            self.assertFalse(g.try_apply_action(
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.DIAMONDS, build_stack_dest=6)
+            ))
+
             self.assertTrue(g.try_apply_action(
                 game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=6)
             ))
             self.assertTrue(game.is_valid_game_state(g.gs))
+            self.assertFalse(g.try_apply_action(
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=6)
+            ))
+            self.assertFalse(g.try_apply_action(
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.SPADES, build_stack_dest=6)
+            ))
 
         self.assertFalse(g.try_apply_action(
             game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=6)
