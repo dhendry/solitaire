@@ -178,41 +178,201 @@ class GameTes(TestCase):
         self.assertTrue(g.gs.build_stacks[6] == game.get_bitmask(game.CLUBS, game.SEVEN))
 
         # A couple which should not work :
-        self.assertFalse(g.try_apply_action(
-            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.SPADES, build_stack_dest=1)
-        ))
-        self.assertFalse(g.try_apply_action(
-            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=3)
-        ))
-        self.assertFalse(g.try_apply_action(
-            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=6)
-        ))
+        self.assertFalse(
+            g.try_apply_action(
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.SPADES, build_stack_dest=1)
+            )
+        )
+        self.assertFalse(
+            g.try_apply_action(
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=3)
+            )
+        )
+        self.assertFalse(
+            g.try_apply_action(
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=6)
+            )
+        )
 
         # Setup build stack 6 (root card being the 7 of clubs)
         for _ in range(3):
-            self.assertTrue(g.try_apply_action(
-                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=6)
-            ))
+            self.assertTrue(
+                g.try_apply_action(
+                    game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=6)
+                )
+            )
             self.assertTrue(game.is_valid_game_state(g.gs))
-            self.assertFalse(g.try_apply_action(
-                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=6)
-            ))
-            self.assertFalse(g.try_apply_action(
-                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.DIAMONDS, build_stack_dest=6)
-            ))
+            self.assertFalse(
+                g.try_apply_action(
+                    game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=6)
+                )
+            )
+            self.assertFalse(
+                g.try_apply_action(
+                    game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.DIAMONDS, build_stack_dest=6)
+                )
+            )
 
-            self.assertTrue(g.try_apply_action(
-                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=6)
-            ))
+            self.assertTrue(
+                g.try_apply_action(
+                    game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=6)
+                )
+            )
             self.assertTrue(game.is_valid_game_state(g.gs))
-            self.assertFalse(g.try_apply_action(
-                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=6)
-            ))
-            self.assertFalse(g.try_apply_action(
-                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.SPADES, build_stack_dest=6)
-            ))
+            self.assertFalse(
+                g.try_apply_action(
+                    game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=6)
+                )
+            )
+            self.assertFalse(
+                g.try_apply_action(
+                    game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.SPADES, build_stack_dest=6)
+                )
+            )
 
+        self.assertFalse(
+            g.try_apply_action(
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=6)
+            )
+        )
+        self.assertTrue(game.is_valid_game_state(g.gs))
+
+    def test_try_apply_action_SUIT_STACK_TO_BUILD_STACK_NUM(self):
+        g = game.deal_game(is_random=False)
+
+        # Check the expected layout of the last two build stacks
+        self.assertEqual(game.get_bitmask(game.HEARTS, game.SEVEN), g.gs.build_stacks[5])
+        self.assertEqual(game.get_bitmask(game.CLUBS, game.SEVEN), g.gs.build_stacks[6])
+
+        # Move all the clubs from the talon stack to the suit stack
+        for _ in range(6):
+            self.assertTrue(g.try_apply_action(game.Action(type=game.TO_SUIT_STACK, suit=game.CLUBS)))
+            self.assertTrue(game.is_valid_game_state(g.gs))
+
+        # Check the expected layout of the last two build stacks
+        self.assertEqual(game.get_bitmask(game.HEARTS, game.SEVEN), g.gs.build_stacks[5])
+        self.assertEqual(game.get_bitmask(game.CLUBS, game.SEVEN), g.gs.build_stacks[6])
+
+        # Check that we cant move th 6 of clubs to the 7 of clubs
+        self.assertFalse(
+            g.try_apply_action(
+                game.Action(type=game.SUIT_STACK_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=6)
+            )
+        )
+
+        # Now move the 6 of clubs from the suit stack to the 7 of hearts on build stack idx 5
+        self.assertTrue(g.gs.suit_stack & game.get_bitmask(game.CLUBS, game.SIX))
+        self.assertTrue(
+            g.try_apply_action(
+                game.Action(type=game.SUIT_STACK_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=5)
+            )
+        )
+        self.assertFalse(g.gs.talon & game.get_bitmask(game.CLUBS, game.SIX))
+        self.assertTrue(g.gs.build_stacks[5] & game.get_bitmask(game.CLUBS, game.SIX))
+
+        # Other final state checks
+        self.assertTrue(game.is_valid_game_state(g.gs))
+        self.assertTrue(g.gs.build_stacks[5] & game.get_bitmask(game.HEARTS, game.SEVEN))
+        self.assertFalse(g.gs.build_stacks[6] & game.get_bitmask(game.CLUBS, game.SIX))
+
+    def test_try_apply_action_SUIT_STACK_TO_BUILD_STACK_NUM_all_cards(self):
+        g = game.deal_game(is_random=False)
+
+        # We expect the non-randomized deal to be directly solveable:
+        for r in game.CardRank.values()[1:]:
+            for s in game.Suit.values()[1:]:
+                res = g.try_apply_action(game.Action(type=game.TO_SUIT_STACK, suit=s))
+                self.assertTrue(res)
+                self.assertTrue(game.is_valid_game_state(g.gs))
+
+        # Everything is in the suit stack
+        self.assertEqual(0, g.gs.talon)
+        for bidx in range(7):
+            self.assertEqual(0, g.gs.build_stacks[bidx])
+            self.assertEqual(0, g.gs.build_stacks_num_hidden[bidx])
+            self.assertEqual([], list(g.hgs.stack[bidx].cards))
+
+        # Move from the suit stack back to build stacks
+        for r in game.CardRank.values()[1:]:
+            if r % 2 == 0:
+                for s, dest in [(game.CLUBS, 1), (game.DIAMONDS, 2), (game.HEARTS, 3), (game.SPADES, 4)]:
+                    res = g.try_apply_action(
+                        game.Action(type=game.SUIT_STACK_TO_BUILD_STACK_NUM, suit=s, build_stack_dest=dest)
+                    )
+                    self.assertTrue(res)
+                    self.assertTrue(game.is_valid_game_state(g.gs))
+
+            else:
+                for s, dest in [(game.CLUBS, 2), (game.DIAMONDS, 1), (game.HEARTS, 4), (game.SPADES, 3)]:
+                    res = g.try_apply_action(
+                        game.Action(type=game.SUIT_STACK_TO_BUILD_STACK_NUM, suit=s, build_stack_dest=dest)
+                    )
+                    self.assertTrue(res)
+                    self.assertTrue(game.is_valid_game_state(g.gs))
+
+        self.assertEqual(0, g.gs.talon)
+        self.assertEqual(0, g.gs.suit_stack)
+        self.assertEqual(0, g.gs.build_stacks[0])
+        self.assertEqual(0, g.gs.build_stacks[5])
+        self.assertEqual(0, g.gs.build_stacks[6])
+
+        self.assertEqual(0, g.gs.build_stacks[1] & game.SUIT_MASK[game.HEARTS])
+        self.assertEqual(0, g.gs.build_stacks[2] & game.SUIT_MASK[game.HEARTS])
+        self.assertEqual(0, g.gs.build_stacks[1] & game.SUIT_MASK[game.SPADES])
+        self.assertEqual(0, g.gs.build_stacks[2] & game.SUIT_MASK[game.SPADES])
+
+        self.assertEqual(0, g.gs.build_stacks[3] & game.SUIT_MASK[game.CLUBS])
+        self.assertEqual(0, g.gs.build_stacks[4] & game.SUIT_MASK[game.CLUBS])
+        self.assertEqual(0, g.gs.build_stacks[3] & game.SUIT_MASK[game.DIAMONDS])
+        self.assertEqual(0, g.gs.build_stacks[4] & game.SUIT_MASK[game.DIAMONDS])
+
+    def test_try_apply_action_BUILD_STACK_NUM_TO_BUILD_STACK_NUM(self):
+        g = game.deal_game(is_random=False)
+
+        # Check the desired initial state
+        self.assertEqual(game.get_bitmask(game.CLUBS, game.SEVEN), g.gs.build_stacks[6])
+        self.assertEqual(game.get_bitmask(game.HEARTS, game.SEVEN), g.gs.build_stacks[5])
+        self.assertEqual(game.get_bitmask(game.DIAMONDS, game.EIGHT), g.gs.build_stacks[4])
+
+        # Seven of clubs to seven of hearts - should not work:
         self.assertFalse(g.try_apply_action(
-            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=6)
+            game.Action(type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=5)
         ))
         self.assertTrue(game.is_valid_game_state(g.gs))
+
+        # Seven of hearts to eight of diamonds - should not work
+        self.assertFalse(g.try_apply_action(
+            game.Action(type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=4)
+        ))
+        self.assertTrue(game.is_valid_game_state(g.gs))
+
+        # Seven of clubs to eight of diamonds - should not
+        self.assertTrue(g.try_apply_action(
+            game.Action(type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=4)
+        ))
+        self.assertTrue(game.is_valid_game_state(g.gs))
+
+        # Unstack a few from the talon on to one of the red sevens
+        self.assertTrue(g.try_apply_action(
+            # The six
+            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.SPADES, build_stack_dest=5)
+        ))
+        self.assertTrue(g.try_apply_action(
+            # The five
+            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=5)
+        ))
+        self.assertTrue(g.try_apply_action(
+            # The four
+            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=5)
+        ))
+        self.assertTrue(game.is_valid_game_state(g.gs))
+
+        # Now try moving between the build stacks
+        self.assertEqual(4, game.bit_count(g.gs.build_stacks[5]))
+        self.assertEqual(1, game.bit_count(g.gs.build_stacks[6]))
+        self.assertTrue(g.try_apply_action(
+            game.Action(type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=6)
+        ))
+        self.assertTrue(game.is_valid_game_state(g.gs))
+        self.assertEqual(1, game.bit_count(g.gs.build_stacks[5]))
+        self.assertEqual(4, game.bit_count(g.gs.build_stacks[6]))

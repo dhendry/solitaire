@@ -68,6 +68,7 @@ def card_idx_to_suit(card_idx: int) -> Suit:
 
 def card_idx_to_rank(card_idx: int) -> CardRank:
     if card_idx == -1:
+        # Special case to deal with an empty mask passed into the lowest/highest functions
         return UNKNOWN_RANK
 
     assert 0 <= card_idx <= MAX_CARD_IDX, card_idx
@@ -238,8 +239,7 @@ class Game:
             assert 0 == action.build_stack_dest
 
             # Determine the card rank we are going to be looking to move:
-            highest_idx = highest_card_idx(self.gs.suit_stack & SUIT_MASK[action.suit])
-            rank = card_idx_to_rank(highest_idx) + 1 if highest_idx >= 0 else ACE
+            rank = card_idx_to_rank(highest_card_idx(self.gs.suit_stack & SUIT_MASK[action.suit])) + 1
             if rank > KING:
                 return False
 
@@ -314,12 +314,94 @@ class Game:
 
             self.gs.talon &= ~card_to_move
             self.gs.build_stacks[action.build_stack_dest] |= card_to_move
+        elif action.type == SUIT_STACK_TO_BUILD_STACK_NUM:
+            assert CLUBS <= action.suit <= SPADES, action.suit
+            assert 0 == action.build_stack_src
+            assert 0 <= action.build_stack_dest <= 6
+
+            # Determine the card rank we are going to be looking to move:
+            lowest_idx = lowest_card_idx(self.gs.build_stacks[action.build_stack_dest])
+            rank = card_idx_to_rank(lowest_idx) - 1 if lowest_idx >= 0 else KING
+
+            if rank < ACE:
+                return False
+
+            # This is the bitmask:
+            card_to_move = get_bitmask(action.suit, rank)
+
+            # Check the card to move is actually in the suit stack
+            if self.gs.suit_stack & card_to_move == 0:
+                # Appropriate rank in requested suit is not in the pile
+                return False
+
+            # Check the colors
+            if lowest_idx >= 0 and card_idx_to_suit(lowest_idx) not in (
+                RED_SUITS if action.suit in BLACK_SUITS else BLACK_SUITS
+            ):
+                # Bottom of the build stack is not the appropriate color
+                return False
+
+            if check_only:
+                return True
+
+            self.gs.suit_stack &= ~card_to_move
+            self.gs.build_stacks[action.build_stack_dest] |= card_to_move
+        elif action.type == BUILD_STACK_NUM_TO_BUILD_STACK_NUM:
+            assert action.suit == UNKNOWN_SUIT, action.suit
+            assert 0 <= action.build_stack_src <= 6
+            assert 0 <= action.build_stack_dest <= 6
+
+            if action.build_stack_src == action.build_stack_dest:
+                return False
+
+            # Lowest rank in the destination:
+            lowest_idx = lowest_card_idx(self.gs.build_stacks[action.build_stack_dest])
+
+            # Determine the max card rank we are going to be looking to move:
+            max_rank = card_idx_to_rank(lowest_idx) - 1 if lowest_idx >= 0 else KING
+
+            if max_rank < ACE:
+                return False
+
+            base_card_to_move = self.gs.build_stacks[action.build_stack_src] & RANK_MASK[max_rank]
+
+            # Check the card is in the source
+            if self.gs.build_stacks[action.build_stack_src] & base_card_to_move == 0:
+                return False
+
+            assert bit_count(base_card_to_move) == 1, bin(base_card_to_move)
+
+            # Check the colors
+            if lowest_idx >= 0 and card_idx_to_suit(lowest_idx) not in (
+                RED_SUITS
+                if card_idx_to_suit(bitmask_to_card_idx(base_card_to_move)) in BLACK_SUITS
+                else BLACK_SUITS
+            ):
+                return False
+
+            if check_only:
+                return True
+
+            # Note that we are not just moving one card but all cards under the base
+            to_move = self.gs.build_stacks[action.build_stack_src] & ((base_card_to_move << 1) - 1)
+            assert to_move > 0, bin(to_move)
+
+            self.gs.build_stacks[action.build_stack_src] &= ~to_move
+            self.gs.build_stacks[action.build_stack_dest] |= to_move
+
+            # If necessary, uncover from hidden
+            if (
+                self.gs.build_stacks[action.build_stack_src] == 0
+                and self.gs.build_stacks_num_hidden[action.build_stack_src] > 0
+            ):
+                self.gs.build_stacks_num_hidden[action.build_stack_src] -= 1
+                self.gs.build_stacks[action.build_stack_src] |= card_to_bitmask(
+                    self.hgs.stack[action.build_stack_src].cards.pop()
+                )
         else:
             raise Exception(f"Unkown action {action}")
 
         return True
-        # card_idx_to_rank()
-        pass
 
 
 def deal_game(seed: int = None, is_random: bool = True):
