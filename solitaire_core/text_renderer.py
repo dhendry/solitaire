@@ -66,6 +66,9 @@ def _draw_card(screen, x: int, y: int, suit: game.Suit = None, rank: game.CardRa
 
 
 def render(gs: game.VisibleGameState) -> str:
+    """
+    Pretty fuckin hacky...
+    """
     screen = [[" "] * WIDTH for _ in range(HEIGHT)]
 
     # Talon:

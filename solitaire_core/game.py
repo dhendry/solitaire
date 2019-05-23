@@ -3,14 +3,14 @@ import logging
 import random
 from typing import List
 
-import numpy as np
-
 from .game_state_pb2 import *
 
 logger = logging.getLogger(__name__)
 
 RED_SUITS = {DIAMONDS, HEARTS}
 BLACK_SUITS = {CLUBS, SPADES}
+
+SUITS_OF_ALT_COLOR = {DIAMONDS: BLACK_SUITS, HEARTS: BLACK_SUITS, CLUBS: RED_SUITS, SPADES: RED_SUITS}
 
 
 def bit_count(int_type: int) -> int:
@@ -47,6 +47,13 @@ MAX_CARD_IDX = get_card_idx(SPADES, KING)
 SUIT_MASK = {
     s: functools.reduce(lambda a, r: a | get_bitmask(s, r), CardRank.values()[1:], 0)
     for s in Suit.values()[1:]
+}
+
+ALT_SUIT_MASK = {
+    DIAMONDS: SUIT_MASK[CLUBS] | SUIT_MASK[SPADES],
+    HEARTS: SUIT_MASK[CLUBS] | SUIT_MASK[SPADES],
+    CLUBS: SUIT_MASK[DIAMONDS] | SUIT_MASK[HEARTS],
+    SPADES: SUIT_MASK[DIAMONDS] | SUIT_MASK[HEARTS],
 }
 
 # Mask for all suits of a particular rank
@@ -90,6 +97,10 @@ def bitmask_to_card_idx(bitmask: int) -> int:
     idx = bitmask.bit_length() - 1
     assert 0 <= idx <= MAX_CARD_IDX, idx
     return idx
+
+
+def bitmask_to_suit(bitmask: int) -> Suit:
+    return card_idx_to_suit(bitmask_to_card_idx(bitmask))
 
 
 def lowest_card_idx(bitmask: int) -> int:
@@ -213,10 +224,6 @@ def is_valid_game_state(gs: VisibleGameState) -> bool:
     return True
 
 
-def state_to_vec(game_state: VisibleGameState) -> np.array:
-    pass
-
-
 class Game:
     gs: VisibleGameState
     hgs: HiddenGameState
@@ -303,9 +310,7 @@ class Game:
                 return False
 
             # Check the colors
-            if lowest_idx >= 0 and card_idx_to_suit(lowest_idx) not in (
-                RED_SUITS if action.suit in BLACK_SUITS else BLACK_SUITS
-            ):
+            if lowest_idx >= 0 and card_idx_to_suit(lowest_idx) not in SUITS_OF_ALT_COLOR[action.suit]:
                 # Bottom of the build stack is not the appropriate color
                 return False
 
@@ -335,9 +340,7 @@ class Game:
                 return False
 
             # Check the colors
-            if lowest_idx >= 0 and card_idx_to_suit(lowest_idx) not in (
-                RED_SUITS if action.suit in BLACK_SUITS else BLACK_SUITS
-            ):
+            if lowest_idx >= 0 and card_idx_to_suit(lowest_idx) not in SUITS_OF_ALT_COLOR[action.suit]:
                 # Bottom of the build stack is not the appropriate color
                 return False
 
@@ -373,9 +376,7 @@ class Game:
 
             # Check the colors
             if lowest_idx >= 0 and card_idx_to_suit(lowest_idx) not in (
-                RED_SUITS
-                if card_idx_to_suit(bitmask_to_card_idx(base_card_to_move)) in BLACK_SUITS
-                else BLACK_SUITS
+                SUITS_OF_ALT_COLOR[bitmask_to_suit(base_card_to_move)]
             ):
                 return False
 
@@ -402,6 +403,52 @@ class Game:
             raise Exception(f"Unkown action {action}")
 
         return True
+
+    def get_valid_actions(self) -> List[Action]:
+        actions = []
+
+        # To suit stack actions? First build mask of cards to search for
+        to_suit_valid_mask = 0
+        for s in Suit.values()[1:]:
+            next_rank = card_idx_to_rank(highest_card_idx(self.gs.suit_stack & SUIT_MASK[s])) + 1
+            if next_rank > KING:
+                continue
+
+            to_suit_valid_mask |= get_bitmask(s, next_rank)
+
+        # Look for cards suitable for to suit stack actions
+        if to_suit_valid_mask:
+            for stack in [self.gs.talon, *self.gs.build_stacks]:
+                found_in_stack = stack & to_suit_valid_mask
+                if found_in_stack == 0:
+                    continue
+
+                for card in bitmask_to_cards(found_in_stack):
+                    actions.append(Action(type=TO_SUIT_STACK, suit=card.suit))
+
+                to_suit_valid_mask &= ~found_in_stack
+                if to_suit_valid_mask == 0:
+                    break
+
+        # Next, any TALON_TO_BUILD_STACK_NUM actions
+        for bidx in range(7):
+            suitability_mask = 0  # Get it?
+            if self.gs.build_stacks[bidx] == 0:
+                suitability_mask = RANK_MASK[KING]
+            else:
+                lowest_idx = lowest_card_idx(self.gs.build_stacks[bidx])
+
+                next_rank = card_idx_to_rank(lowest_idx) - 1
+                if next_rank < ACE:
+                    continue
+
+                suitability_mask = RANK_MASK[next_rank] & ALT_SUIT_MASK[card_idx_to_suit(lowest_idx)]
+
+            for card in bitmask_to_cards(self.gs.talon & suitability_mask):
+                actions.append(Action(type=TALON_TO_BUILD_STACK_NUM, suit=card.suit, build_stack_dest=bidx))
+
+        assert all(self.try_apply_action(a, check_only=True) for a in actions)
+        return actions
 
 
 def deal_game(seed: int = None, is_random: bool = True):
@@ -437,17 +484,17 @@ def deal_game(seed: int = None, is_random: bool = True):
         gs.talon |= card_idx_to_bitmask(card_idxs[current_card_idx])
         current_card_idx += 1
 
-    logger.debug(
-        f"Game state: talon: {bitmask_to_cards(gs.talon)}\n"
-        f"Suit stacks: {bitmask_to_cards(gs.suit_stack)}\n"
-        f"bs0: {bitmask_to_cards(gs.build_stacks[0])}\n"
-        f"bs1: {bitmask_to_cards(gs.build_stacks[1])}\n"
-        f"bs2: {bitmask_to_cards(gs.build_stacks[2])}\n"
-        f"bs3: {bitmask_to_cards(gs.build_stacks[3])}\n"
-        f"bs4: {bitmask_to_cards(gs.build_stacks[4])}\n"
-        f"bs5: {bitmask_to_cards(gs.build_stacks[5])}\n"
-        f"bs6: {bitmask_to_cards(gs.build_stacks[6])}"
-    )
+    # logger.debug(
+    #     f"Game state: talon: {bitmask_to_cards(gs.talon)}\n"
+    #     f"Suit stacks: {bitmask_to_cards(gs.suit_stack)}\n"
+    #     f"bs0: {bitmask_to_cards(gs.build_stacks[0])}\n"
+    #     f"bs1: {bitmask_to_cards(gs.build_stacks[1])}\n"
+    #     f"bs2: {bitmask_to_cards(gs.build_stacks[2])}\n"
+    #     f"bs3: {bitmask_to_cards(gs.build_stacks[3])}\n"
+    #     f"bs4: {bitmask_to_cards(gs.build_stacks[4])}\n"
+    #     f"bs5: {bitmask_to_cards(gs.build_stacks[5])}\n"
+    #     f"bs6: {bitmask_to_cards(gs.build_stacks[6])}"
+    # )
 
     assert is_valid_game_state(gs)
 
