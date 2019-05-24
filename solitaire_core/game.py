@@ -42,6 +42,7 @@ def card_to_bitmask(card: Card) -> int:
 # Inclusive
 MAX_CARD_IDX = get_card_idx(SPADES, KING)
 
+ALL_CARDS_MASK = (1 << (MAX_CARD_IDX + 1)) - 1
 
 # Mask for all ranks of a particular suit
 SUIT_MASK = {
@@ -412,7 +413,7 @@ class Game:
             *self._get_BUILD_STACK_NUM_TO_BUILD_STACK_NUM_actions(),
         ]
 
-        assert all(self.try_apply_action(a, check_only=True) for a in actions)
+        assert all(self.try_apply_action(a, check_only=True) for a in actions), [a for a in actions if not self.try_apply_action(a, True)]
         return actions
 
     def _get_TO_SUIT_STACK_actions(self) -> Generator[Action, None, None]:
@@ -495,7 +496,7 @@ class Game:
                 # Check the appropriate rank and color is in the src stack at - least somewhere
                 src_card_mask = (
                     self.gs.build_stacks[src]
-                    & ALT_SUIT_MASK[card_idx_to_suit(dest_lowest)]
+                    & (ALT_SUIT_MASK[card_idx_to_suit(dest_lowest)] if dest_lowest >= 0 else ALL_CARDS_MASK)
                     & RANK_MASK[max_rank]
                 )
                 if src_card_mask == 0:
@@ -505,6 +506,42 @@ class Game:
                 yield Action(
                     type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=src, build_stack_dest=dest
                 )
+
+    @property
+    def is_won(self) -> bool:
+        if self.gs.suit_stack != ALL_CARDS_MASK:
+            return False
+
+        assert is_valid_game_state(self.gs)
+        assert self.gs.talon == 0
+        assert all(bs == 0 for bs in self.gs.build_stacks)
+        assert all(bs_nh == 0 for bs_nh in self.gs.build_stacks_num_hidden)
+        assert all(len(s.cards) == 0 for s in self.hgs.stack)
+
+        return True
+
+    @property
+    def is_won_effectively(self) -> bool:
+        """
+        "Effectively won" means all hidden cards have been uncovered (but possibly not moved to the suit
+        stack). Once all cards are uncovered its always possible to fully win the game.
+        """
+        # Is the game outright won?
+        if self.gs.suit_stack == ALL_CARDS_MASK:
+            assert self.is_won
+            return True
+
+        # If there are any hidden cards, the game has not been effectively one (note I believe the REAL
+        # 'always winnable' condition occurs when sum(num_hidden) <= 1
+        for nh in self.gs.build_stacks_num_hidden:
+            if nh > 0:
+                return False
+
+        # No hidden cards, game has been effectively won
+        assert is_valid_game_state(self.gs)
+        assert all(len(s.cards) == 0 for s in self.hgs.stack)
+        return True
+
 
 
 def deal_game(seed: int = None, is_random: bool = True):
