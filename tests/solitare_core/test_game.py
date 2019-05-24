@@ -431,17 +431,51 @@ class GameTest(TestCase):
         # | |     |                                                                |
         # | |     |                                                                |
         # | +-----+                                                                |
+        # +------------------------------------------------------------------------+
 
         self.assertEqual(
             [
-                game.Action(game.TO_SUIT_STACK, game.CLUBS),
-                game.Action(game.TO_SUIT_STACK, game.DIAMONDS),
-                game.Action(game.TO_SUIT_STACK, game.HEARTS),
-                game.Action(game.TO_SUIT_STACK, game.SPADES),
-                game.Action(game.TALON_TO_BUILD_STACK_NUM, game.CLUBS, build_stack_dest=5),
-                game.Action(game.TALON_TO_BUILD_STACK_NUM, game.SPADES, build_stack_dest=5),
-                game.Action(game.TALON_TO_BUILD_STACK_NUM, game.DIAMONDS, build_stack_dest=6),
-                game.Action(game.TALON_TO_BUILD_STACK_NUM, game.HEARTS, build_stack_dest=6),
+                game.Action(type=game.TO_SUIT_STACK, suit=game.CLUBS),
+                game.Action(type=game.TO_SUIT_STACK, suit=game.DIAMONDS),
+                game.Action(type=game.TO_SUIT_STACK, suit=game.HEARTS),
+                game.Action(type=game.TO_SUIT_STACK, suit=game.SPADES),
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=5),
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.SPADES, build_stack_dest=5),
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.DIAMONDS, build_stack_dest=6),
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=6),
+                game.Action(
+                    type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=4
+                ),
             ],
             g.get_valid_actions(),
+        )
+
+        # Move the ace through 6 of clubs to the suit stack
+        for _ in range(6):
+            g.apply_action(game.Action(type=game.TO_SUIT_STACK, suit=game.CLUBS))
+        actions = g.get_valid_actions()
+        self.assertIn(
+            game.Action(type=game.SUIT_STACK_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=5), actions
+        )
+
+        # Move the seven fof clubs to the eight of diamonds, this uncovers two red sevens on the last stacks
+        g.apply_action(
+            game.Action(type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=4)
+        )
+        self.assertEqual(game.get_bitmask(game.HEARTS, game.SEVEN), g.gs.build_stacks[5])
+        self.assertEqual(game.get_bitmask(game.DIAMONDS, game.SEVEN), g.gs.build_stacks[6])
+
+        # Now move the six of spades from the talon to the 5th build stack:
+        g.apply_action(
+            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.SPADES, build_stack_dest=5)
+        )
+
+        actions = g.get_valid_actions()
+        self.assertEqual(
+            [
+                game.Action(
+                    type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=6
+                )
+            ],
+            [a for a in actions if a.type == game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM],
         )

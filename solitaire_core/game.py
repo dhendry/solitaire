@@ -1,7 +1,7 @@
 import functools
 import logging
 import random
-from typing import List
+from typing import List, Generator
 
 from .game_state_pb2 import *
 
@@ -405,9 +405,17 @@ class Game:
         return True
 
     def get_valid_actions(self) -> List[Action]:
-        actions = []
+        actions = [
+            *self._get_TO_SUIT_STACK_actions(),
+            *self._get_TALON_TO_BUILD_STACK_NUM_actions(),
+            *self._get_SUIT_STACK_TO_BUILD_STACK_NUM_actions(),
+            *self._get_BUILD_STACK_NUM_TO_BUILD_STACK_NUM_actions(),
+        ]
 
-        # To suit stack actions? First build mask of cards to search for
+        assert all(self.try_apply_action(a, check_only=True) for a in actions)
+        return actions
+
+    def _get_TO_SUIT_STACK_actions(self) -> Generator[Action, None, None]:
         to_suit_valid_mask = 0
         for s in Suit.values()[1:]:
             next_rank = card_idx_to_rank(highest_card_idx(self.gs.suit_stack & SUIT_MASK[s])) + 1
@@ -424,13 +432,13 @@ class Game:
                     continue
 
                 for card in bitmask_to_cards(found_in_stack):
-                    actions.append(Action(type=TO_SUIT_STACK, suit=card.suit))
+                    yield Action(type=TO_SUIT_STACK, suit=card.suit)
 
                 to_suit_valid_mask &= ~found_in_stack
                 if to_suit_valid_mask == 0:
                     break
 
-        # Any TALON_TO_BUILD_STACK_NUM actions
+    def _get_TALON_TO_BUILD_STACK_NUM_actions(self) -> Generator[Action, None, None]:
         for bidx in range(7):
             suitability_mask = 0  # Get it?
             if self.gs.build_stacks[bidx] == 0:
@@ -445,10 +453,58 @@ class Game:
                 suitability_mask = RANK_MASK[next_rank] & ALT_SUIT_MASK[card_idx_to_suit(lowest_idx)]
 
             for card in bitmask_to_cards(self.gs.talon & suitability_mask):
-                actions.append(Action(type=TALON_TO_BUILD_STACK_NUM, suit=card.suit, build_stack_dest=bidx))
+                yield Action(type=TALON_TO_BUILD_STACK_NUM, suit=card.suit, build_stack_dest=bidx)
 
-        assert all(self.try_apply_action(a, check_only=True) for a in actions)
-        return actions
+    def _get_SUIT_STACK_TO_BUILD_STACK_NUM_actions(self) -> Generator[Action, None, None]:
+        for bidx in range(7):
+            suitability_mask = 0  # Get it?
+            if self.gs.build_stacks[bidx] == 0:
+                suitability_mask = RANK_MASK[KING]
+            else:
+                lowest_idx = lowest_card_idx(self.gs.build_stacks[bidx])
+
+                next_rank = card_idx_to_rank(lowest_idx) - 1
+                if next_rank < ACE:
+                    continue
+
+                suitability_mask = RANK_MASK[next_rank] & ALT_SUIT_MASK[card_idx_to_suit(lowest_idx)]
+
+            for card in bitmask_to_cards(self.gs.suit_stack & suitability_mask):
+                yield Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=card.suit, build_stack_dest=bidx)
+
+    def _get_BUILD_STACK_NUM_TO_BUILD_STACK_NUM_actions(self) -> Generator[Action, None, None]:
+        for src in range(7):
+            # Is there anything to move?
+            if self.gs.build_stacks[src] == 0:
+                assert self.gs.build_stacks_num_hidden[src] == 0
+                continue
+
+            # Look through each of the dest piles
+            for dest in range(7):
+                if src == dest:
+                    continue
+
+                # Lowest card idx in the dest piple
+                dest_lowest = lowest_card_idx(self.gs.build_stacks[dest])
+
+                # Rank to find in the src pile
+                max_rank = card_idx_to_rank(dest_lowest) - 1 if dest_lowest >= 0 else KING
+                if max_rank < ACE:
+                    continue
+
+                # Check the appropriate rank and color is in the src stack at - least somewhere
+                src_card_mask = (
+                    self.gs.build_stacks[src]
+                    & ALT_SUIT_MASK[card_idx_to_suit(dest_lowest)]
+                    & RANK_MASK[max_rank]
+                )
+                if src_card_mask == 0:
+                    continue
+                assert bit_count(src_card_mask) == 1
+
+                yield Action(
+                    type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=src, build_stack_dest=dest
+                )
 
 
 def deal_game(seed: int = None, is_random: bool = True):
