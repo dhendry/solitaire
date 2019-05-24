@@ -9,7 +9,7 @@ def _new_gs():
     return game.deal_game(is_random=False).gs
 
 
-class GameTes(TestCase):
+class GameTest(TestCase):
     def test_bit_operators(self):
         all_cards_bitmask = 0
 
@@ -335,44 +335,113 @@ class GameTes(TestCase):
         self.assertEqual(game.get_bitmask(game.DIAMONDS, game.EIGHT), g.gs.build_stacks[4])
 
         # Seven of clubs to seven of hearts - should not work:
-        self.assertFalse(g.try_apply_action(
-            game.Action(type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=5)
-        ))
+        self.assertFalse(
+            g.try_apply_action(
+                game.Action(
+                    type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=5
+                )
+            )
+        )
         self.assertTrue(game.is_valid_game_state(g.gs))
 
         # Seven of hearts to eight of diamonds - should not work
-        self.assertFalse(g.try_apply_action(
-            game.Action(type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=4)
-        ))
+        self.assertFalse(
+            g.try_apply_action(
+                game.Action(
+                    type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=4
+                )
+            )
+        )
         self.assertTrue(game.is_valid_game_state(g.gs))
 
         # Seven of clubs to eight of diamonds - should not
-        self.assertTrue(g.try_apply_action(
-            game.Action(type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=4)
-        ))
+        self.assertTrue(
+            g.try_apply_action(
+                game.Action(
+                    type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=4
+                )
+            )
+        )
         self.assertTrue(game.is_valid_game_state(g.gs))
 
         # Unstack a few from the talon on to one of the red sevens
-        self.assertTrue(g.try_apply_action(
-            # The six
-            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.SPADES, build_stack_dest=5)
-        ))
-        self.assertTrue(g.try_apply_action(
-            # The five
-            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=5)
-        ))
-        self.assertTrue(g.try_apply_action(
-            # The four
-            game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=5)
-        ))
+        self.assertTrue(
+            g.try_apply_action(
+                # The six
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.SPADES, build_stack_dest=5)
+            )
+        )
+        self.assertTrue(
+            g.try_apply_action(
+                # The five
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.HEARTS, build_stack_dest=5)
+            )
+        )
+        self.assertTrue(
+            g.try_apply_action(
+                # The four
+                game.Action(type=game.TALON_TO_BUILD_STACK_NUM, suit=game.CLUBS, build_stack_dest=5)
+            )
+        )
         self.assertTrue(game.is_valid_game_state(g.gs))
 
         # Now try moving between the build stacks
         self.assertEqual(4, game.bit_count(g.gs.build_stacks[5]))
         self.assertEqual(1, game.bit_count(g.gs.build_stacks[6]))
-        self.assertTrue(g.try_apply_action(
-            game.Action(type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=6)
-        ))
+        self.assertTrue(
+            g.try_apply_action(
+                game.Action(
+                    type=game.BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=6
+                )
+            )
+        )
         self.assertTrue(game.is_valid_game_state(g.gs))
         self.assertEqual(1, game.bit_count(g.gs.build_stacks[5]))
         self.assertEqual(4, game.bit_count(g.gs.build_stacks[6]))
+
+    def test_get_valid_actions__simple_state(self):
+        g = game.deal_game(is_random=False)
+        # +------------------------------------------------------------------------+
+        # |+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--|
+        # ||  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+        # ||A |A |A |A |2 |2 |2 |2 |3 |3 |3 |3 |4 |4 |4 |4 |5 |5 |5 |5 |6 |6 |6 |6 |
+        # ||♣ |♦ |♥ |♠ |♣ |♦ |♥ |♠ |♣ |♦ |♥ |♠ |♣ |♦ |♥ |♠ |♣ |♦ |♥ |♠ |♣ |♦ |♥ |♠ |
+        # ||  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+        # |+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--|
+        # | +-----+  +-----+  +-----+  +-----+  +-----+  +-----+  +-----+  +-----+ |
+        # | |   ♣ |  | K ♠ |  +-----+  +-----+  +-----+  +-----+  +-----+  +-----+ |
+        # | |     |  |     |  | Q ♣ |  +-----+  +-----+  +-----+  +-----+  +-----+ |
+        # | |     |  |     |  |     |  | 10♥ |  +-----+  +-----+  +-----+  +-----+ |
+        # | +-----+  +-----+  |     |  |     |  | 9 ♦ |  +-----+  +-----+  +-----+ |
+        # |                   +-----+  |     |  |     |  | 8 ♦ |  +-----+  +-----+ |
+        # | +-----+                    +-----+  |     |  |     |  | 7 ♥ |  +-----+ |
+        # | |   ♦ |                             +-----+  |     |  |     |  | 7 ♣ | |
+        # | |     |                                      +-----+  |     |  |     | |
+        # | |     |                                               +-----+  |     | |
+        # | +-----+                                                        +-----+ |
+        # |                                                                        |
+        # | +-----+                                                                |
+        # | |   ♥ |                                                                |
+        # | |     |                                                                |
+        # | |     |                                                                |
+        # | +-----+                                                                |
+        # |                                                                        |
+        # | +-----+                                                                |
+        # | |   ♠ |                                                                |
+        # | |     |                                                                |
+        # | |     |                                                                |
+        # | +-----+                                                                |
+
+        self.assertEqual(
+            [
+                game.Action(game.TO_SUIT_STACK, game.CLUBS),
+                game.Action(game.TO_SUIT_STACK, game.DIAMONDS),
+                game.Action(game.TO_SUIT_STACK, game.HEARTS),
+                game.Action(game.TO_SUIT_STACK, game.SPADES),
+                game.Action(game.TALON_TO_BUILD_STACK_NUM, game.CLUBS, build_stack_dest=5),
+                game.Action(game.TALON_TO_BUILD_STACK_NUM, game.SPADES, build_stack_dest=5),
+                game.Action(game.TALON_TO_BUILD_STACK_NUM, game.DIAMONDS, build_stack_dest=6),
+                game.Action(game.TALON_TO_BUILD_STACK_NUM, game.HEARTS, build_stack_dest=6),
+            ],
+            g.get_valid_actions(),
+        )

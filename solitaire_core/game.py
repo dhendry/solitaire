@@ -430,7 +430,7 @@ class Game:
                 if to_suit_valid_mask == 0:
                     break
 
-        # Next, any TALON_TO_BUILD_STACK_NUM actions
+        # Any TALON_TO_BUILD_STACK_NUM actions
         for bidx in range(7):
             suitability_mask = 0  # Get it?
             if self.gs.build_stacks[bidx] == 0:
