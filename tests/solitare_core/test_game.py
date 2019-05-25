@@ -459,27 +459,29 @@ class GameTest(TestCase):
         # | +-----+                                                                |
         # +------------------------------------------------------------------------+
 
-        # self.assertEqual(
-        #     [
-        #         Action(type=TO_SUIT_STACK, suit=CLUBS),
-        #         Action(type=TO_SUIT_STACK, suit=DIAMONDS),
-        #         Action(type=TO_SUIT_STACK, suit=HEARTS),
-        #         Action(type=TO_SUIT_STACK, suit=SPADES),
-        #         Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=DIAMONDS, build_stack_dest=1),
-        #         Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=1),
-        #         Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=DIAMONDS, build_stack_dest=4),
-        #         Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=4),
-        #         # TODO: finish
-        #         Action(type=TALON_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=5),
-        #         Action(type=TALON_TO_BUILD_STACK_NUM, suit=SPADES, build_stack_dest=5),
-        #         Action(type=TALON_TO_BUILD_STACK_NUM, suit=DIAMONDS, build_stack_dest=6),
-        #         Action(type=TALON_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=6),
-        #         Action(
-        #             type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=4
-        #         ),
-        #     ],
-        #     g.get_valid_actions(),
-        # )
+        self.assertEqual(
+            [
+                Action(type=TO_SUIT_STACK, suit=CLUBS),
+                Action(type=TO_SUIT_STACK, suit=SPADES),
+                Action(type=TO_SUIT_STACK, suit=HEARTS),
+                Action(type=TO_SUIT_STACK, suit=DIAMONDS),
+                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=DIAMONDS, build_stack_dest=1),
+                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=1),
+                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=DIAMONDS, build_stack_dest=4),
+                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=4),
+                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=5),
+                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=SPADES, build_stack_dest=5),
+                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=6),
+                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=SPADES, build_stack_dest=6),
+                Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=1, build_stack_dest=2),
+                Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=4, build_stack_dest=2),
+                Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=0),
+                Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=3),
+                Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=0),
+                Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=3),
+            ],
+            g.get_valid_actions(),
+        )
 
     def test_get_valid_actions__simple_state(self):
         g = deal_game(is_random=False)
