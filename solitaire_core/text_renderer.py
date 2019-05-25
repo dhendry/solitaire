@@ -43,6 +43,13 @@ def _rank_symb(rank: game.CardRank) -> str:
     raise Exception(f"Unknown rank {rank}")
 
 
+def _add_color(txt: str, suit: game.Suit) -> str:
+    if suit in game.RED_SUITS:
+        return "\033[31m" + txt + "\033[0m"
+
+    return txt
+
+
 def _draw(screen, string, x, y):
     row = screen[y]
     for i, c in enumerate(string):
@@ -187,4 +194,10 @@ def render(gs: game.VisibleGameState, actions: List[game.Action] = None) -> str:
         screen[additional_v_offset + len(actions) + 2].append("  q: Quit")
 
     # Finally join it all together
-    return "\n".join("".join(s) for s in screen)
+    rendered = "\n".join("".join(s) for s in screen)
+    # SUPER FUCKING HACKY: add red coloring:
+    for s in game.RED_SUITS:
+        rendered = rendered.replace(_suit_symb(s), _add_color(_suit_symb(s), s))
+        rendered = rendered.replace(game.Suit.Name(s), _add_color(game.Suit.Name(s), s))
+
+    return rendered

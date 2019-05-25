@@ -105,6 +105,11 @@ def bitmask_to_suit(bitmask: int) -> Suit:
     return card_idx_to_suit(bitmask_to_card_idx(bitmask))
 
 
+def lowest_bitmask(bitmask: int) -> int:
+    assert bitmask >= 0, bitmask
+    return bitmask & ~(bitmask - 1)
+
+
 def lowest_card_idx(bitmask: int) -> int:
     assert bitmask >= 0, bitmask
     return (bitmask & ~(bitmask - 1)).bit_length() - 1
@@ -270,6 +275,14 @@ class Game:
                     if not (card_bitmask_to_find & self.gs.build_stacks[bidx]):
                         continue
 
+                    if (
+                        card_idx_to_bitmask(lowest_card_idx(self.gs.build_stacks[bidx]))
+                        != card_bitmask_to_find
+                    ):
+                        continue
+
+                    # TODO: needs to be the lowest card
+
                     if check_only:
                         return True
 
@@ -430,7 +443,11 @@ class Game:
 
         # Look for cards suitable for to suit stack actions
         if to_suit_valid_mask:
-            for stack in [self.gs.talon, *self.gs.build_stacks]:
+            for i, stack in enumerate([self.gs.talon, *self.gs.build_stacks]):
+                if i > 0:
+                    # Unless we are looking at the talon stack, only the last card is eligible
+                    stack = lowest_bitmask(stack)
+
                 found_in_stack = stack & to_suit_valid_mask
                 if found_in_stack == 0:
                     continue
@@ -494,6 +511,10 @@ class Game:
                 # Rank to find in the src pile
                 max_rank = card_idx_to_rank(dest_lowest) - 1 if dest_lowest >= 0 else KING
                 if max_rank < ACE:
+                    continue
+
+                if max_rank == KING and self.gs.build_stacks_num_hidden[src] == 0:
+                    # Dont suggest moving kings between empty build stacks - even if its valid
                     continue
 
                 # Check the appropriate rank and color is in the src stack at - least somewhere
