@@ -278,7 +278,7 @@ class Game:
 
                     # Uncover hidden card if necessary:
                     assert self.gs.build_stacks_num_hidden[bidx] == len(self.hgs.stack[bidx].cards)
-                    if self.gs.build_stacks_num_hidden[bidx] > 0:
+                    if self.gs.build_stacks[bidx] == 0 and self.gs.build_stacks_num_hidden[bidx] > 0:
                         self.gs.build_stacks_num_hidden[bidx] -= 1
                         self.gs.build_stacks[bidx] |= card_to_bitmask(self.hgs.stack[bidx].cards.pop())
                     found = True

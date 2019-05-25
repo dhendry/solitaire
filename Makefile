@@ -34,6 +34,9 @@ test: proto format ## Just run unit tests.
 
 all-local: init proto format test ## Execute all local setup, build and test steps. This is probably the command you are looking for.
 
+play: proto format test ## Play CLI game
+	pipenv run python cli_game.py
+
 # Self-Documented Makefile see https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help: ## When you just dont know what to do with your life, look for inspiration here!
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)

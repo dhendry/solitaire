@@ -1,5 +1,7 @@
 import itertools
 
+from typing import List
+
 from solitaire_core import game
 
 WIDTH = 24 * 3
@@ -65,7 +67,7 @@ def _draw_card(screen, x: int, y: int, suit: game.Suit = None, rank: game.CardRa
     _draw(screen, "+-----+", x, y + 4)
 
 
-def render(gs: game.VisibleGameState) -> str:
+def render(gs: game.VisibleGameState, actions: List[game.Action] = None) -> str:
     """
     Pretty fuckin hacky...
     """
@@ -83,7 +85,7 @@ def render(gs: game.VisibleGameState) -> str:
         _draw(screen, "+--", left_offset, talon_height_offset + 5)
 
     # Suit stacks:
-    suit_height_offset = 6
+    suit_height_offset = 7
     suit_left_offset = 1
     for i, suit in enumerate(game.Suit.values()[1:]):
         _draw_card(
@@ -95,9 +97,11 @@ def render(gs: game.VisibleGameState) -> str:
         )
 
     # Build stacks
-    build_height_offset = talon_height_offset + 5 + 1
+    build_height_offset = talon_height_offset + 5 + 2
     for build_idx in range(7):
         build_left_offset = 1 + build_idx * 9 + 9
+
+        _draw(screen, str(build_idx), build_left_offset +   3, build_height_offset - 1)
 
         stack_v_offset = build_height_offset
 
@@ -136,10 +140,51 @@ def render(gs: game.VisibleGameState) -> str:
             row.append("|")
     screen.append(["+"] + ["-"] * WIDTH + ["+"])
 
-    # Sanity check:
+    # Sanity check basic screen layout:
     assert len(screen) == HEIGHT + 2
     assert all(len(row) == WIDTH + 2 for row in screen)
     assert all(all(len(px) == 1 for px in row) for row in screen)
+
+    # Now attach on the set of valid actions
+    additional_v_offset = 2
+    if actions is not None:
+        screen[0] += " " * (2 + 3) + "Actions"
+
+        a_prev = None
+        for i, a in enumerate(actions):
+
+            # Basic setup
+            txt = " "
+            txt += str(i).rjust(2)
+            txt += ": "
+            txt += game.ActionType.Name(a.type).ljust(17)
+
+            # Suit or src buiild stack
+            if a.type in {game.TO_SS_S, game.TALON_S_TO_BS_N, game.SS_S_TO_BS_N}:
+                txt += game.Suit.Name(a.suit).ljust(8)
+            elif a.type == game.BS_N_TO_BS_N:
+                txt += str(a.build_stack_src).ljust(8)
+            else:
+                # Not currently hit (?)
+                txt += " " * 8
+
+            txt += " " * 2
+
+            # Dest build stack
+            if a.type in {game.TALON_S_TO_BS_N, game.SS_S_TO_BS_N, game.BS_N_TO_BS_N}:
+                txt += str(a.build_stack_dest).ljust(2)
+            else:
+                txt += " " * 2
+
+            # Separation between types of actions - note: not checking bounds on offset (meh)
+            if a_prev is not None and a_prev.type != a.type:
+                additional_v_offset += 1
+            a_prev = a
+
+            screen[i + additional_v_offset].append(txt)
+
+        screen[additional_v_offset + len(actions) + 1].append("  n: New game")
+        screen[additional_v_offset + len(actions) + 2].append("  q: Quit")
 
     # Finally join it all together
     return "\n".join("".join(s) for s in screen)
