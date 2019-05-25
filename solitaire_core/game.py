@@ -508,7 +508,7 @@ class Game:
                 )
 
     @property
-    def is_won(self) -> bool:
+    def won(self) -> bool:
         if self.gs.suit_stack != ALL_CARDS_MASK:
             return False
 
@@ -521,14 +521,14 @@ class Game:
         return True
 
     @property
-    def is_won_effectively(self) -> bool:
+    def won_effectively(self) -> bool:
         """
         "Effectively won" means all hidden cards have been uncovered (but possibly not moved to the suit
         stack). Once all cards are uncovered its always possible to fully win the game.
         """
         # Is the game outright won?
         if self.gs.suit_stack == ALL_CARDS_MASK:
-            assert self.is_won
+            assert self.won
             return True
 
         # If there are any hidden cards, the game has not been effectively one (note I believe the REAL

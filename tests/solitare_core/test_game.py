@@ -172,8 +172,8 @@ class GameTest(TestCase):
                 self.assertTrue(res)
                 self.assertTrue(is_valid_game_state(g.gs))
 
-        self.assertTrue(g.is_won)
-        self.assertTrue(g.is_won_effectively)
+        self.assertTrue(g.won)
+        self.assertTrue(g.won_effectively)
 
         # Cant apply any more:
         for s in Suit.values()[1:]:
@@ -563,8 +563,8 @@ class GameTest(TestCase):
     def test_is_won(self):
         g = deal_game(is_random=False)
 
-        self.assertFalse(g.is_won)
-        self.assertFalse(g.is_won_effectively)
+        self.assertFalse(g.won)
+        self.assertFalse(g.won_effectively)
 
         # Move everything except the last set of kings
         for r in CardRank.values()[1:-1]:
@@ -572,12 +572,12 @@ class GameTest(TestCase):
                 g.apply_action(Action(type=TO_SUIT_STACK, suit=s))
 
         # Game is not entirely one (4 kings still on the build stacks) but its effectively won
-        self.assertFalse(g.is_won)
-        self.assertTrue(g.is_won_effectively)
+        self.assertFalse(g.won)
+        self.assertTrue(g.won_effectively)
 
         # Move the last set of kings
         for s in Suit.values()[1:]:
             g.apply_action(Action(type=TO_SUIT_STACK, suit=s))
 
-        self.assertTrue(g.is_won)
-        self.assertTrue(g.is_won_effectively)
+        self.assertTrue(g.won)
+        self.assertTrue(g.won_effectively)
