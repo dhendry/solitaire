@@ -33,11 +33,13 @@ message Card {
 }
 
 message VisibleGameState {
-    // Bitmasks by card and suit num:
+    // Bitmasks by card idx:  (suit - 1) + (rank - 1) * 4
     uint64 talon = 1;
 
+    // Bitmasks by card idx:  (suit - 1) + (rank - 1) * 4
     uint64 suit_stack = 2;
 
+    // Bitmasks by card idx:  (suit - 1) + (rank - 1) * 4
     repeated uint64 build_stacks = 3; // length 7 expected
     repeated uint32 build_stacks_num_hidden = 4; // length 7 expected
 }
