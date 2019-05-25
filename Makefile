@@ -26,7 +26,7 @@ proto: ## Just run unit tests.
 
 format: ## Autoformat
 	@# https://github.com/timothycrosley/isort/issues/725
-	source $(shell pipenv --venv)/bin/activate && isort --skip solitaire_core/*.pyi --atomic -rc -y . $(EXTRA_FLAGS) && deactivate
+	source $(shell pipenv --venv)/bin/activate && isort --atomic -rc -y . $(EXTRA_FLAGS) && deactivate
 	pipenv run black --safe --line-length=110 . $(EXTRA_FLAGS)
 
 test: proto format ## Just run unit tests.
