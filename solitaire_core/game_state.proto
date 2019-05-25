@@ -53,16 +53,16 @@ enum ActionType {
     UNKNWON_ACTION = 0;
 
     // Expect ony suit as additional param
-    TO_SUIT_STACK = 1;
+    TO_SS_S = 1;
 
     // Expect suit and dest build stack num as params
-    TALON_TO_BUILD_STACK_NUM = 2;
+    TALON_S_TO_BS_N = 2;
 
     // Expect suit and dest build stack num as parms
-    SUIT_STACK_TO_BUILD_STACK_NUM = 3;
+    SS_S_TO_BS_N = 3;
 
     // Expect src and dest build stack num as parms
-    BUILD_STACK_NUM_TO_BUILD_STACK_NUM = 4;
+    BS_N_TO_BS_N = 4;
 }
 
 message Action {

@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
 .DEFAULT_GOAL := help
-.PHONY: clean init proto test all-local
+.PHONY: clean init proto format test all-local
 
 clean: ## Very basic clean functionality
 	rm -rf dist/ build/ .mypy_cache/ .pytest_cache/ collected_static/ .coverage db.sqlite3
@@ -24,10 +24,15 @@ init: ## Initialize or update the local environment using pipenv.
 proto: ## Just run unit tests.
 	pipenv run protoc -I=solitaire_core --python_out=solitaire_core --mypy_out=solitaire_core solitaire_core/*.proto
 
-test: proto## Just run unit tests.
+format: ## Autoformat
+	@# https://github.com/timothycrosley/isort/issues/725
+	source $(shell pipenv --venv)/bin/activate && isort --skip solitaire_core/*.pyi --atomic -rc -y . $(EXTRA_FLAGS) && deactivate
+	pipenv run black --safe --line-length=110 . $(EXTRA_FLAGS)
+
+test: proto format ## Just run unit tests.
 	pipenv run pytest -v  tests/ --durations=50
 
-all-local: init proto test ## Execute all local setup, build and test steps. This is probably the command you are looking for.
+all-local: init proto format test ## Execute all local setup, build and test steps. This is probably the command you are looking for.
 
 # Self-Documented Makefile see https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help: ## When you just dont know what to do with your life, look for inspiration here!

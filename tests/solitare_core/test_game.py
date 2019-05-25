@@ -1,8 +1,7 @@
+import random
 from unittest import TestCase
 
 from solitaire_core.game import *
-
-import random
 
 
 def _new_gs():
@@ -59,11 +58,7 @@ class GameTest(TestCase):
     def test_mask_maps(self):
         # Check the suit masks are complete
         self.assertEqual(
-            SUIT_MASK[CLUBS]
-            | SUIT_MASK[DIAMONDS]
-            | SUIT_MASK[HEARTS]
-            | SUIT_MASK[SPADES],
-            ALL_CARDS_MASK,
+            SUIT_MASK[CLUBS] | SUIT_MASK[DIAMONDS] | SUIT_MASK[HEARTS] | SUIT_MASK[SPADES], ALL_CARDS_MASK
         )
 
         # Check the rank masks are complete
@@ -114,13 +109,13 @@ class GameTest(TestCase):
         gs.suit_stack |= get_bitmask(CLUBS, FIVE)
         self.assertFalse(is_valid_game_state(gs))  # Should not pass
 
-    def test_try_apply_action_TO_SUIT_STACK(self):
+    def test_try_apply_action_TO_SS_S(self):
         g = deal_game(is_random=False)
 
         # Make sure the game state is valid:
         self.assertTrue(g.gs.talon & get_bitmask(CLUBS, ACE))
 
-        res = g.try_apply_action(Action(type=TO_SUIT_STACK, suit=CLUBS))
+        res = g.try_apply_action(Action(type=TO_SS_S, suit=CLUBS))
         self.assertTrue(res)
 
         # Make sure its been moved:
@@ -134,7 +129,7 @@ class GameTest(TestCase):
         # Note upper parameter is exclusive - we expect the seven to be in one of the build stacks based on
         # the non-randomized deal
         for rank_to_move in range(TWO, SEVEN):
-            res = g.try_apply_action(Action(type=TO_SUIT_STACK, suit=CLUBS))
+            res = g.try_apply_action(Action(type=TO_SS_S, suit=CLUBS))
             self.assertTrue(res)
             self.assertTrue(is_valid_game_state(g.gs))
 
@@ -143,7 +138,7 @@ class GameTest(TestCase):
         self.assertEqual(6, g.gs.build_stacks_num_hidden[6])
 
         # Next action should move from the last build stack:
-        res = g.try_apply_action(Action(type=TO_SUIT_STACK, suit=CLUBS))
+        res = g.try_apply_action(Action(type=TO_SS_S, suit=CLUBS))
         self.assertTrue(res)
         self.assertTrue(is_valid_game_state(g.gs))
 
@@ -152,23 +147,23 @@ class GameTest(TestCase):
         self.assertEqual(5, g.gs.build_stacks_num_hidden[6])
 
         # Cant move another club
-        res = g.try_apply_action(Action(type=TO_SUIT_STACK, suit=CLUBS))
+        res = g.try_apply_action(Action(type=TO_SS_S, suit=CLUBS))
         self.assertFalse(res)
         self.assertTrue(is_valid_game_state(g.gs))
 
         # Finally move another card type:
-        res = g.try_apply_action(Action(type=TO_SUIT_STACK, suit=HEARTS))
+        res = g.try_apply_action(Action(type=TO_SS_S, suit=HEARTS))
         self.assertTrue(res)
         self.assertFalse(g.gs.talon & get_bitmask(HEARTS, ACE))
         self.assertTrue(g.gs.suit_stack & get_bitmask(HEARTS, ACE))
 
-    def test_try_apply_action_TO_SUIT_STACK_all_cards(self):
+    def test_try_apply_action_TO_SS_S_all_cards(self):
         g = deal_game(is_random=False)
 
         # We expect the non-randomized deal to be directly solveable:
         for r in CardRank.values()[1:]:
             for s in Suit.values()[1:]:
-                res = g.try_apply_action(Action(type=TO_SUIT_STACK, suit=s))
+                res = g.try_apply_action(Action(type=TO_SS_S, suit=s))
                 self.assertTrue(res)
                 self.assertTrue(is_valid_game_state(g.gs))
 
@@ -177,7 +172,7 @@ class GameTest(TestCase):
 
         # Cant apply any more:
         for s in Suit.values()[1:]:
-            res = g.try_apply_action(Action(type=TO_SUIT_STACK, suit=s))
+            res = g.try_apply_action(Action(type=TO_SS_S, suit=s))
             self.assertFalse(res)
             self.assertTrue(is_valid_game_state(g.gs))
 
@@ -192,73 +187,39 @@ class GameTest(TestCase):
             for s in Suit.values()[1:]:
                 self.assertTrue(g.gs.suit_stack & get_bitmask(s, r))
 
-    def test_try_apply_action_TALON_TO_BUILD_STACK_NUM(self):
+    def test_try_apply_action_TALON_S_TO_BS_N(self):
         g = deal_game(is_random=False)
 
         # Expect the 7 of clubs on the last build stack:
         self.assertTrue(g.gs.build_stacks[6] == get_bitmask(CLUBS, SEVEN))
 
         # A couple which should not work :
-        self.assertFalse(
-            g.try_apply_action(
-                Action(type=TALON_TO_BUILD_STACK_NUM, suit=SPADES, build_stack_dest=1)
-            )
-        )
-        self.assertFalse(
-            g.try_apply_action(
-                Action(type=TALON_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=3)
-            )
-        )
-        self.assertFalse(
-            g.try_apply_action(
-                Action(type=TALON_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=6)
-            )
-        )
+        self.assertFalse(g.try_apply_action(Action(type=TALON_S_TO_BS_N, suit=SPADES, build_stack_dest=1)))
+        self.assertFalse(g.try_apply_action(Action(type=TALON_S_TO_BS_N, suit=HEARTS, build_stack_dest=3)))
+        self.assertFalse(g.try_apply_action(Action(type=TALON_S_TO_BS_N, suit=CLUBS, build_stack_dest=6)))
 
         # Setup build stack 6 (root card being the 7 of clubs)
         for _ in range(3):
-            self.assertTrue(
-                g.try_apply_action(
-                    Action(type=TALON_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=6)
-                )
-            )
+            self.assertTrue(g.try_apply_action(Action(type=TALON_S_TO_BS_N, suit=HEARTS, build_stack_dest=6)))
             self.assertTrue(is_valid_game_state(g.gs))
             self.assertFalse(
-                g.try_apply_action(
-                    Action(type=TALON_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=6)
-                )
+                g.try_apply_action(Action(type=TALON_S_TO_BS_N, suit=HEARTS, build_stack_dest=6))
             )
             self.assertFalse(
-                g.try_apply_action(
-                    Action(type=TALON_TO_BUILD_STACK_NUM, suit=DIAMONDS, build_stack_dest=6)
-                )
+                g.try_apply_action(Action(type=TALON_S_TO_BS_N, suit=DIAMONDS, build_stack_dest=6))
             )
 
-            self.assertTrue(
-                g.try_apply_action(
-                    Action(type=TALON_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=6)
-                )
-            )
+            self.assertTrue(g.try_apply_action(Action(type=TALON_S_TO_BS_N, suit=CLUBS, build_stack_dest=6)))
             self.assertTrue(is_valid_game_state(g.gs))
+            self.assertFalse(g.try_apply_action(Action(type=TALON_S_TO_BS_N, suit=CLUBS, build_stack_dest=6)))
             self.assertFalse(
-                g.try_apply_action(
-                    Action(type=TALON_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=6)
-                )
-            )
-            self.assertFalse(
-                g.try_apply_action(
-                    Action(type=TALON_TO_BUILD_STACK_NUM, suit=SPADES, build_stack_dest=6)
-                )
+                g.try_apply_action(Action(type=TALON_S_TO_BS_N, suit=SPADES, build_stack_dest=6))
             )
 
-        self.assertFalse(
-            g.try_apply_action(
-                Action(type=TALON_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=6)
-            )
-        )
+        self.assertFalse(g.try_apply_action(Action(type=TALON_S_TO_BS_N, suit=HEARTS, build_stack_dest=6)))
         self.assertTrue(is_valid_game_state(g.gs))
 
-    def test_try_apply_action_SUIT_STACK_TO_BUILD_STACK_NUM(self):
+    def test_try_apply_action_SS_S_TO_BS_N(self):
         g = deal_game(is_random=False)
 
         # Check the expected layout of the last two build stacks
@@ -267,7 +228,7 @@ class GameTest(TestCase):
 
         # Move all the clubs from the talon stack to the suit stack
         for _ in range(6):
-            self.assertTrue(g.try_apply_action(Action(type=TO_SUIT_STACK, suit=CLUBS)))
+            self.assertTrue(g.try_apply_action(Action(type=TO_SS_S, suit=CLUBS)))
             self.assertTrue(is_valid_game_state(g.gs))
 
         # Check the expected layout of the last two build stacks
@@ -275,19 +236,11 @@ class GameTest(TestCase):
         self.assertEqual(get_bitmask(CLUBS, SEVEN), g.gs.build_stacks[6])
 
         # Check that we cant move th 6 of clubs to the 7 of clubs
-        self.assertFalse(
-            g.try_apply_action(
-                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=6)
-            )
-        )
+        self.assertFalse(g.try_apply_action(Action(type=SS_S_TO_BS_N, suit=CLUBS, build_stack_dest=6)))
 
         # Now move the 6 of clubs from the suit stack to the 7 of hearts on build stack idx 5
         self.assertTrue(g.gs.suit_stack & get_bitmask(CLUBS, SIX))
-        self.assertTrue(
-            g.try_apply_action(
-                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=5)
-            )
-        )
+        self.assertTrue(g.try_apply_action(Action(type=SS_S_TO_BS_N, suit=CLUBS, build_stack_dest=5)))
         self.assertFalse(g.gs.talon & get_bitmask(CLUBS, SIX))
         self.assertTrue(g.gs.build_stacks[5] & get_bitmask(CLUBS, SIX))
 
@@ -296,13 +249,13 @@ class GameTest(TestCase):
         self.assertTrue(g.gs.build_stacks[5] & get_bitmask(HEARTS, SEVEN))
         self.assertFalse(g.gs.build_stacks[6] & get_bitmask(CLUBS, SIX))
 
-    def test_try_apply_action_SUIT_STACK_TO_BUILD_STACK_NUM_all_cards(self):
+    def test_try_apply_action_SS_S_TO_BS_N_all_cards(self):
         g = deal_game(is_random=False)
 
         # We expect the non-randomized deal to be directly solveable:
         for r in CardRank.values()[1:]:
             for s in Suit.values()[1:]:
-                res = g.try_apply_action(Action(type=TO_SUIT_STACK, suit=s))
+                res = g.try_apply_action(Action(type=TO_SS_S, suit=s))
                 self.assertTrue(res)
                 self.assertTrue(is_valid_game_state(g.gs))
 
@@ -317,17 +270,13 @@ class GameTest(TestCase):
         for r in CardRank.values()[1:]:
             if r % 2 == 0:
                 for s, dest in [(CLUBS, 1), (DIAMONDS, 2), (HEARTS, 3), (SPADES, 4)]:
-                    res = g.try_apply_action(
-                        Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=s, build_stack_dest=dest)
-                    )
+                    res = g.try_apply_action(Action(type=SS_S_TO_BS_N, suit=s, build_stack_dest=dest))
                     self.assertTrue(res)
                     self.assertTrue(is_valid_game_state(g.gs))
 
             else:
                 for s, dest in [(CLUBS, 2), (DIAMONDS, 1), (HEARTS, 4), (SPADES, 3)]:
-                    res = g.try_apply_action(
-                        Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=s, build_stack_dest=dest)
-                    )
+                    res = g.try_apply_action(Action(type=SS_S_TO_BS_N, suit=s, build_stack_dest=dest))
                     self.assertTrue(res)
                     self.assertTrue(is_valid_game_state(g.gs))
 
@@ -347,7 +296,7 @@ class GameTest(TestCase):
         self.assertEqual(0, g.gs.build_stacks[3] & SUIT_MASK[DIAMONDS])
         self.assertEqual(0, g.gs.build_stacks[4] & SUIT_MASK[DIAMONDS])
 
-    def test_try_apply_action_BUILD_STACK_NUM_TO_BUILD_STACK_NUM(self):
+    def test_try_apply_action_BS_N_TO_BS_N(self):
         g = deal_game(is_random=False)
 
         # Check the desired initial state
@@ -356,52 +305,34 @@ class GameTest(TestCase):
         self.assertEqual(get_bitmask(DIAMONDS, EIGHT), g.gs.build_stacks[4])
 
         # Seven of clubs to seven of hearts - should not work:
-        self.assertFalse(
-            g.try_apply_action(
-                Action(
-                    type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=5
-                )
-            )
-        )
+        self.assertFalse(g.try_apply_action(Action(type=BS_N_TO_BS_N, build_stack_src=6, build_stack_dest=5)))
         self.assertTrue(is_valid_game_state(g.gs))
 
         # Seven of hearts to eight of diamonds - should not work
-        self.assertFalse(
-            g.try_apply_action(
-                Action(
-                    type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=4
-                )
-            )
-        )
+        self.assertFalse(g.try_apply_action(Action(type=BS_N_TO_BS_N, build_stack_src=5, build_stack_dest=4)))
         self.assertTrue(is_valid_game_state(g.gs))
 
         # Seven of clubs to eight of diamonds - should not
-        self.assertTrue(
-            g.try_apply_action(
-                Action(
-                    type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=4
-                )
-            )
-        )
+        self.assertTrue(g.try_apply_action(Action(type=BS_N_TO_BS_N, build_stack_src=6, build_stack_dest=4)))
         self.assertTrue(is_valid_game_state(g.gs))
 
         # Unstack a few from the talon on to one of the red sevens
         self.assertTrue(
             g.try_apply_action(
                 # The six
-                Action(type=TALON_TO_BUILD_STACK_NUM, suit=SPADES, build_stack_dest=5)
+                Action(type=TALON_S_TO_BS_N, suit=SPADES, build_stack_dest=5)
             )
         )
         self.assertTrue(
             g.try_apply_action(
                 # The five
-                Action(type=TALON_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=5)
+                Action(type=TALON_S_TO_BS_N, suit=HEARTS, build_stack_dest=5)
             )
         )
         self.assertTrue(
             g.try_apply_action(
                 # The four
-                Action(type=TALON_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=5)
+                Action(type=TALON_S_TO_BS_N, suit=CLUBS, build_stack_dest=5)
             )
         )
         self.assertTrue(is_valid_game_state(g.gs))
@@ -409,13 +340,7 @@ class GameTest(TestCase):
         # Now try moving between the build stacks
         self.assertEqual(4, bit_count(g.gs.build_stacks[5]))
         self.assertEqual(1, bit_count(g.gs.build_stacks[6]))
-        self.assertTrue(
-            g.try_apply_action(
-                Action(
-                    type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=6
-                )
-            )
-        )
+        self.assertTrue(g.try_apply_action(Action(type=BS_N_TO_BS_N, build_stack_src=5, build_stack_dest=6)))
         self.assertTrue(is_valid_game_state(g.gs))
         self.assertEqual(1, bit_count(g.gs.build_stacks[5]))
         self.assertEqual(4, bit_count(g.gs.build_stacks[6]))
@@ -424,7 +349,7 @@ class GameTest(TestCase):
         g = deal_game(is_random=False)
         for r in CardRank.values()[1:-2]:
             for s in Suit.values()[1:]:
-                g.apply_action(Action(type=TO_SUIT_STACK, suit=s))
+                g.apply_action(Action(type=TO_SS_S, suit=s))
 
         # Now in this state:
         # +------------------------------------------------------------------------+
@@ -461,24 +386,24 @@ class GameTest(TestCase):
 
         self.assertEqual(
             [
-                Action(type=TO_SUIT_STACK, suit=CLUBS),
-                Action(type=TO_SUIT_STACK, suit=SPADES),
-                Action(type=TO_SUIT_STACK, suit=HEARTS),
-                Action(type=TO_SUIT_STACK, suit=DIAMONDS),
-                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=DIAMONDS, build_stack_dest=1),
-                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=1),
-                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=DIAMONDS, build_stack_dest=4),
-                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=4),
-                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=5),
-                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=SPADES, build_stack_dest=5),
-                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=6),
-                Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=SPADES, build_stack_dest=6),
-                Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=1, build_stack_dest=2),
-                Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=4, build_stack_dest=2),
-                Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=0),
-                Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=3),
-                Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=0),
-                Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=3),
+                Action(type=TO_SS_S, suit=CLUBS),
+                Action(type=TO_SS_S, suit=SPADES),
+                Action(type=TO_SS_S, suit=HEARTS),
+                Action(type=TO_SS_S, suit=DIAMONDS),
+                Action(type=SS_S_TO_BS_N, suit=DIAMONDS, build_stack_dest=1),
+                Action(type=SS_S_TO_BS_N, suit=HEARTS, build_stack_dest=1),
+                Action(type=SS_S_TO_BS_N, suit=DIAMONDS, build_stack_dest=4),
+                Action(type=SS_S_TO_BS_N, suit=HEARTS, build_stack_dest=4),
+                Action(type=SS_S_TO_BS_N, suit=CLUBS, build_stack_dest=5),
+                Action(type=SS_S_TO_BS_N, suit=SPADES, build_stack_dest=5),
+                Action(type=SS_S_TO_BS_N, suit=CLUBS, build_stack_dest=6),
+                Action(type=SS_S_TO_BS_N, suit=SPADES, build_stack_dest=6),
+                Action(type=BS_N_TO_BS_N, build_stack_src=1, build_stack_dest=2),
+                Action(type=BS_N_TO_BS_N, build_stack_src=4, build_stack_dest=2),
+                Action(type=BS_N_TO_BS_N, build_stack_src=5, build_stack_dest=0),
+                Action(type=BS_N_TO_BS_N, build_stack_src=5, build_stack_dest=3),
+                Action(type=BS_N_TO_BS_N, build_stack_src=6, build_stack_dest=0),
+                Action(type=BS_N_TO_BS_N, build_stack_src=6, build_stack_dest=3),
             ],
             g.get_valid_actions(),
         )
@@ -519,47 +444,37 @@ class GameTest(TestCase):
 
         self.assertEqual(
             [
-                Action(type=TO_SUIT_STACK, suit=CLUBS),
-                Action(type=TO_SUIT_STACK, suit=DIAMONDS),
-                Action(type=TO_SUIT_STACK, suit=HEARTS),
-                Action(type=TO_SUIT_STACK, suit=SPADES),
-                Action(type=TALON_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=5),
-                Action(type=TALON_TO_BUILD_STACK_NUM, suit=SPADES, build_stack_dest=5),
-                Action(type=TALON_TO_BUILD_STACK_NUM, suit=DIAMONDS, build_stack_dest=6),
-                Action(type=TALON_TO_BUILD_STACK_NUM, suit=HEARTS, build_stack_dest=6),
-                Action(
-                    type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=4
-                ),
+                Action(type=TO_SS_S, suit=CLUBS),
+                Action(type=TO_SS_S, suit=DIAMONDS),
+                Action(type=TO_SS_S, suit=HEARTS),
+                Action(type=TO_SS_S, suit=SPADES),
+                Action(type=TALON_S_TO_BS_N, suit=CLUBS, build_stack_dest=5),
+                Action(type=TALON_S_TO_BS_N, suit=SPADES, build_stack_dest=5),
+                Action(type=TALON_S_TO_BS_N, suit=DIAMONDS, build_stack_dest=6),
+                Action(type=TALON_S_TO_BS_N, suit=HEARTS, build_stack_dest=6),
+                Action(type=BS_N_TO_BS_N, build_stack_src=6, build_stack_dest=4),
             ],
             g.get_valid_actions(),
         )
 
         # Move the ace through 6 of clubs to the suit stack
         for _ in range(6):
-            g.apply_action(Action(type=TO_SUIT_STACK, suit=CLUBS))
+            g.apply_action(Action(type=TO_SS_S, suit=CLUBS))
         actions = g.get_valid_actions()
-        self.assertIn(
-            Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=CLUBS, build_stack_dest=5), actions
-        )
+        self.assertIn(Action(type=SS_S_TO_BS_N, suit=CLUBS, build_stack_dest=5), actions)
 
         # Move the seven fof clubs to the eight of diamonds, this uncovers two red sevens on the last stacks
-        g.apply_action(
-            Action(type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=6, build_stack_dest=4)
-        )
+        g.apply_action(Action(type=BS_N_TO_BS_N, build_stack_src=6, build_stack_dest=4))
         self.assertEqual(get_bitmask(HEARTS, SEVEN), g.gs.build_stacks[5])
         self.assertEqual(get_bitmask(DIAMONDS, SEVEN), g.gs.build_stacks[6])
 
         # Now move the six of spades from the talon to the 5th build stack:
-        g.apply_action(Action(type=TALON_TO_BUILD_STACK_NUM, suit=SPADES, build_stack_dest=5))
+        g.apply_action(Action(type=TALON_S_TO_BS_N, suit=SPADES, build_stack_dest=5))
 
         actions = g.get_valid_actions()
         self.assertEqual(
-            [
-                Action(
-                    type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=5, build_stack_dest=6
-                )
-            ],
-            [a for a in actions if a.type == BUILD_STACK_NUM_TO_BUILD_STACK_NUM],
+            [Action(type=BS_N_TO_BS_N, build_stack_src=5, build_stack_dest=6)],
+            [a for a in actions if a.type == BS_N_TO_BS_N],
         )
 
     def test_is_won(self):
@@ -571,7 +486,7 @@ class GameTest(TestCase):
         # Move everything except the last set of kings
         for r in CardRank.values()[1:-1]:
             for s in Suit.values()[1:]:
-                g.apply_action(Action(type=TO_SUIT_STACK, suit=s))
+                g.apply_action(Action(type=TO_SS_S, suit=s))
 
         # Game is not entirely one (4 kings still on the build stacks) but its effectively won
         self.assertFalse(g.won)
@@ -579,7 +494,7 @@ class GameTest(TestCase):
 
         # Move the last set of kings
         for s in Suit.values()[1:]:
-            g.apply_action(Action(type=TO_SUIT_STACK, suit=s))
+            g.apply_action(Action(type=TO_SS_S, suit=s))
 
         self.assertTrue(g.won)
         self.assertTrue(g.won_effectively)

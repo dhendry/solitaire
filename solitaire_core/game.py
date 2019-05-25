@@ -1,7 +1,8 @@
 import functools
 import logging
 import random
-from typing import List, Generator
+
+from typing import Generator, List
 
 from .game_state_pb2 import *
 
@@ -241,7 +242,7 @@ class Game:
             raise Exception(f"Could not apply action {action}")
 
     def try_apply_action(self, action: Action, check_only: bool = False) -> bool:
-        if action.type == TO_SUIT_STACK:
+        if action.type == TO_SS_S:
             assert CLUBS <= action.suit <= SPADES, action.suit
             assert 0 == action.build_stack_src
             assert 0 == action.build_stack_dest
@@ -290,7 +291,7 @@ class Game:
             assert not check_only
             self.gs.suit_stack |= card_bitmask_to_find
 
-        elif action.type == TALON_TO_BUILD_STACK_NUM:
+        elif action.type == TALON_S_TO_BS_N:
             assert CLUBS <= action.suit <= SPADES, action.suit
             assert 0 == action.build_stack_src
             assert 0 <= action.build_stack_dest <= 6
@@ -320,7 +321,7 @@ class Game:
 
             self.gs.talon &= ~card_to_move
             self.gs.build_stacks[action.build_stack_dest] |= card_to_move
-        elif action.type == SUIT_STACK_TO_BUILD_STACK_NUM:
+        elif action.type == SS_S_TO_BS_N:
             assert CLUBS <= action.suit <= SPADES, action.suit
             assert 0 == action.build_stack_src
             assert 0 <= action.build_stack_dest <= 6
@@ -350,7 +351,7 @@ class Game:
 
             self.gs.suit_stack &= ~card_to_move
             self.gs.build_stacks[action.build_stack_dest] |= card_to_move
-        elif action.type == BUILD_STACK_NUM_TO_BUILD_STACK_NUM:
+        elif action.type == BS_N_TO_BS_N:
             assert action.suit == UNKNOWN_SUIT, action.suit
             assert 0 <= action.build_stack_src <= 6
             assert 0 <= action.build_stack_dest <= 6
@@ -407,16 +408,18 @@ class Game:
 
     def get_valid_actions(self) -> List[Action]:
         actions = [
-            *self._get_TO_SUIT_STACK_actions(),
-            *self._get_TALON_TO_BUILD_STACK_NUM_actions(),
-            *self._get_SUIT_STACK_TO_BUILD_STACK_NUM_actions(),
-            *self._get_BUILD_STACK_NUM_TO_BUILD_STACK_NUM_actions(),
+            *self._get_TO_SS_S_actions(),
+            *self._get_TALON_S_TO_BS_N_actions(),
+            *self._get_SS_S_TO_BS_N_actions(),
+            *self._get_BS_N_TO_BS_N_actions(),
         ]
 
-        assert all(self.try_apply_action(a, check_only=True) for a in actions), [a for a in actions if not self.try_apply_action(a, True)]
+        assert all(self.try_apply_action(a, check_only=True) for a in actions), [
+            a for a in actions if not self.try_apply_action(a, True)
+        ]
         return actions
 
-    def _get_TO_SUIT_STACK_actions(self) -> Generator[Action, None, None]:
+    def _get_TO_SS_S_actions(self) -> Generator[Action, None, None]:
         to_suit_valid_mask = 0
         for s in Suit.values()[1:]:
             next_rank = card_idx_to_rank(highest_card_idx(self.gs.suit_stack & SUIT_MASK[s])) + 1
@@ -433,13 +436,13 @@ class Game:
                     continue
 
                 for card in bitmask_to_cards(found_in_stack):
-                    yield Action(type=TO_SUIT_STACK, suit=card.suit)
+                    yield Action(type=TO_SS_S, suit=card.suit)
 
                 to_suit_valid_mask &= ~found_in_stack
                 if to_suit_valid_mask == 0:
                     break
 
-    def _get_TALON_TO_BUILD_STACK_NUM_actions(self) -> Generator[Action, None, None]:
+    def _get_TALON_S_TO_BS_N_actions(self) -> Generator[Action, None, None]:
         for bidx in range(7):
             suitability_mask = 0  # Get it?
             if self.gs.build_stacks[bidx] == 0:
@@ -454,9 +457,9 @@ class Game:
                 suitability_mask = RANK_MASK[next_rank] & ALT_SUIT_MASK[card_idx_to_suit(lowest_idx)]
 
             for card in bitmask_to_cards(self.gs.talon & suitability_mask):
-                yield Action(type=TALON_TO_BUILD_STACK_NUM, suit=card.suit, build_stack_dest=bidx)
+                yield Action(type=TALON_S_TO_BS_N, suit=card.suit, build_stack_dest=bidx)
 
-    def _get_SUIT_STACK_TO_BUILD_STACK_NUM_actions(self) -> Generator[Action, None, None]:
+    def _get_SS_S_TO_BS_N_actions(self) -> Generator[Action, None, None]:
         for bidx in range(7):
             suitability_mask = 0  # Get it?
             if self.gs.build_stacks[bidx] == 0:
@@ -471,9 +474,9 @@ class Game:
                 suitability_mask = RANK_MASK[next_rank] & ALT_SUIT_MASK[card_idx_to_suit(lowest_idx)]
 
             for card in bitmask_to_cards(self.gs.suit_stack & suitability_mask):
-                yield Action(type=SUIT_STACK_TO_BUILD_STACK_NUM, suit=card.suit, build_stack_dest=bidx)
+                yield Action(type=SS_S_TO_BS_N, suit=card.suit, build_stack_dest=bidx)
 
-    def _get_BUILD_STACK_NUM_TO_BUILD_STACK_NUM_actions(self) -> Generator[Action, None, None]:
+    def _get_BS_N_TO_BS_N_actions(self) -> Generator[Action, None, None]:
         for src in range(7):
             # Is there anything to move?
             if self.gs.build_stacks[src] == 0:
@@ -503,9 +506,7 @@ class Game:
                     continue
                 assert bit_count(src_card_mask) == 1
 
-                yield Action(
-                    type=BUILD_STACK_NUM_TO_BUILD_STACK_NUM, build_stack_src=src, build_stack_dest=dest
-                )
+                yield Action(type=BS_N_TO_BS_N, build_stack_src=src, build_stack_dest=dest)
 
     @property
     def won(self) -> bool:
@@ -541,7 +542,6 @@ class Game:
         assert is_valid_game_state(self.gs)
         assert all(len(s.cards) == 0 for s in self.hgs.stack)
         return True
-
 
 
 def deal_game(seed: int = None, is_random: bool = True):
