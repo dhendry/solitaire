@@ -101,7 +101,7 @@ def render(gs: game.VisibleGameState, actions: List[game.Action] = None) -> str:
     for build_idx in range(7):
         build_left_offset = 1 + build_idx * 9 + 9
 
-        _draw(screen, str(build_idx), build_left_offset +   3, build_height_offset - 1)
+        _draw(screen, str(build_idx), build_left_offset + 3, build_height_offset - 1)
 
         stack_v_offset = build_height_offset
 
