@@ -1,6 +1,7 @@
 import random
 from unittest import TestCase
 
+from solitaire_core import text_renderer
 from solitaire_core.game import *
 
 
@@ -277,7 +278,7 @@ class GameTest(TestCase):
             else:
                 for s, dest in [(CLUBS, 2), (DIAMONDS, 1), (HEARTS, 4), (SPADES, 3)]:
                     res = g.try_apply_action(Action(type=SS_S_TO_BS_N, suit=s, build_stack_dest=dest))
-                    self.assertTrue(res)
+                    self.assertTrue(res, text_renderer.render(g.gs))
                     self.assertTrue(is_valid_game_state(g.gs))
 
         self.assertEqual(0, g.gs.talon)

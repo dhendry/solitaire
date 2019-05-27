@@ -196,3 +196,38 @@ class Action(google___protobuf___message___Message):
                 b"build_stack_dest", b"build_stack_src", b"suit", b"type"
             ],
         ) -> None: ...
+
+class GameRecord(google___protobuf___message___Message):
+    won = ...  # type: bool
+    won_effectively = ...  # type: bool
+    @property
+    def initial_state(self) -> VisibleGameState: ...
+    @property
+    def actions(
+        self
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Action]: ...
+    def __init__(
+        self,
+        initial_state: typing___Optional[VisibleGameState] = None,
+        actions: typing___Optional[typing___Iterable[Action]] = None,
+        won: typing___Optional[bool] = None,
+        won_effectively: typing___Optional[bool] = None,
+    ) -> None: ...
+    @classmethod
+    def FromString(cls, s: bytes) -> GameRecord: ...
+    def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
+    def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
+    if sys.version_info >= (3,):
+        def HasField(self, field_name: typing_extensions___Literal[u"initial_state"]) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[u"actions", u"initial_state", u"won", u"won_effectively"],
+        ) -> None: ...
+    else:
+        def HasField(
+            self, field_name: typing_extensions___Literal[u"initial_state", b"initial_state"]
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[b"actions", b"initial_state", b"won", b"won_effectively"],
+        ) -> None: ...

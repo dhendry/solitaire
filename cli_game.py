@@ -14,6 +14,9 @@ if __name__ == "__main__":
 
         os.system("clear")
         print(text_renderer.render(g.gs, actions))
+        print("game_state_id", game_state_id_b58c(g.gs))
+        print("len(g.visited_game_state_ids)", len(g.visited_game_state_ids))
+        print("len(g.game_record.actions)", len(g.game_record.actions))
         print("Won:", g.won)
         print("Won effectively:", g.won_effectively)
 

@@ -7,6 +7,7 @@ name = "pypi"
 protobuf = "*"
 numpy = "*"
 mypy-protobuf = "*"
+base58 = "*"
 
 [dev-packages]
 coverage = "*"

@@ -80,3 +80,10 @@ message Action {
     int32 build_stack_dest = 4;
 }
 
+message GameRecord {
+    VisibleGameState initial_state = 1;
+    repeated Action actions = 2;
+
+    bool won = 3;
+    bool won_effectively = 4;
+}
