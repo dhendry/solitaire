@@ -562,9 +562,9 @@ class Game:
     def get_valid_actions(self, exclude_actions_to_previous_states: bool = True) -> List[Action]:
         actions = [
             *_get_TO_SS_S_actions(self.gs),
+            *_get_BS_N_TO_BS_N_actions(self.gs),
             *_get_TALON_S_TO_BS_N_actions(self.gs),
             *_get_SS_S_TO_BS_N_actions(self.gs),
-            *_get_BS_N_TO_BS_N_actions(self.gs),
         ]
 
         assert all(

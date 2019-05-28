@@ -81,9 +81,9 @@ class ActionType(int):
 
 UNKNWON_ACTION = typing___cast(ActionType, 0)
 TO_SS_S = typing___cast(ActionType, 1)
-TALON_S_TO_BS_N = typing___cast(ActionType, 2)
-SS_S_TO_BS_N = typing___cast(ActionType, 3)
-BS_N_TO_BS_N = typing___cast(ActionType, 4)
+BS_N_TO_BS_N = typing___cast(ActionType, 2)
+TALON_S_TO_BS_N = typing___cast(ActionType, 3)
+SS_S_TO_BS_N = typing___cast(ActionType, 4)
 
 class Card(google___protobuf___message___Message):
     suit = ...  # type: Suit

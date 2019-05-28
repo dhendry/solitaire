@@ -8,6 +8,7 @@ protobuf = "*"
 numpy = "*"
 mypy-protobuf = "*"
 base58 = "*"
+SQLAlchemy = "*"
 
 [dev-packages]
 coverage = "*"

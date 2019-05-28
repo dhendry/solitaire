@@ -58,18 +58,18 @@ enum ActionType {
     // Expect ony suit as additional param
     TO_SS_S = 1;
 
-    // Talon in suit to build stack number
-    // Expect suit and dest build stack num as params
-    TALON_S_TO_BS_N = 2;
-
-    // Suit stack in suit to build stack number
-    // Expect suit and dest build stack num as parms
-    SS_S_TO_BS_N = 3;
-
     // Build stack number to build stack number (last dest card defines the
     // splitting on the source stack if necessary)
     // Expect src and dest build stack num as parms
-    BS_N_TO_BS_N = 4;
+    BS_N_TO_BS_N = 2;
+
+    // Talon in suit to build stack number
+    // Expect suit and dest build stack num as params
+    TALON_S_TO_BS_N = 3;
+
+    // Suit stack in suit to build stack number
+    // Expect suit and dest build stack num as parms
+    SS_S_TO_BS_N = 4;
 }
 
 message Action {
