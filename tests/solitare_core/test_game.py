@@ -23,6 +23,11 @@ class GameTest(TestCase):
 
                 bitmask = get_bitmask(s, r)
                 self.assertEqual(bitmask, card_idx_to_bitmask(current_idx))
+                self.assertEqual(bitmask, lowest_bitmask(bitmask))
+                self.assertEqual(bitmask, highest_bitmask(bitmask))
+
+                self.assertEqual(current_idx, lowest_card_idx(bitmask))
+                self.assertEqual(current_idx, highest_card_idx(bitmask))
 
                 # Bitmask back to idx check
                 self.assertEqual(current_idx, bitmask_to_card_idx(bitmask))
@@ -55,6 +60,15 @@ class GameTest(TestCase):
     def test_lowest_higest(self):
         self.assertEqual(-1, lowest_card_idx(0))
         self.assertEqual(-1, highest_card_idx(0))
+
+        self.assertEqual(0, lowest_bitmask(0))
+        self.assertEqual(0, highest_bitmask(0))
+
+        self.assertEqual(get_bitmask(CLUBS, ACE), lowest_bitmask(ALL_CARDS_MASK))
+        self.assertEqual(get_bitmask(SPADES, KING), highest_bitmask(ALL_CARDS_MASK))
+
+        self.assertEqual(get_card_idx(CLUBS, ACE), lowest_card_idx(ALL_CARDS_MASK))
+        self.assertEqual(get_card_idx(SPADES, KING), highest_card_idx(ALL_CARDS_MASK))
 
     def test_mask_maps(self):
         # Check the suit masks are complete
@@ -499,3 +513,6 @@ class GameTest(TestCase):
 
         self.assertTrue(g.won)
         self.assertTrue(g.won_effectively)
+
+    # def test_cant_repeate_state(self):
+    #     # TODO

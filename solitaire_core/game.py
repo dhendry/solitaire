@@ -125,7 +125,7 @@ def highest_card_idx(bitmask: int) -> int:
 
 def highest_bitmask(bitmask: int) -> int:
     idx = highest_card_idx(bitmask)
-    if idx < 0:
+    if idx == -1:
         return 0
     return card_idx_to_bitmask(idx)
 
