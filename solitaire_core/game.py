@@ -152,8 +152,9 @@ def bitmask_to_cards(bitmask: int) -> List[Card]:
     return [card_idx_to_card(idx) for idx in bitmask_to_card_idxs(bitmask)]
 
 
-def game_state_id_b58c(gs: VisibleGameState) -> str:
-    return base58.b58encode_check(gs.SerializeToString(deterministic=True)).decode("utf-8")
+def game_state_id(gs: VisibleGameState) -> str:
+    # return base58.b58encode_check(gs.SerializeToString(deterministic=True)).decode("utf-8")
+    return base64.b64encode(gs.SerializeToString(deterministic=True)).decode("utf-8")
 
 
 def is_valid_game_state(gs: VisibleGameState) -> bool:
@@ -509,16 +510,16 @@ class Game:
     hgs: HiddenGameState
 
     game_record: GameRecord
-    visited_game_state_ids: Set[str]
+    visited_game_states: Set[bytes]
 
     def __init__(self, current_state: VisibleGameState, current_hidden_state: HiddenGameState):
         self.gs = current_state
         self.hgs = current_hidden_state
 
         self.game_record = GameRecord()
-        self.game_record.initial_state.CopyFrom(self.gs)
+        self.game_record.initial_state.MergeFrom(self.gs)
 
-        self.visited_game_state_ids = set()
+        self.visited_game_states = set()
 
     def apply_action(self, action: Action):
         result = self.try_apply_action(action)
@@ -529,18 +530,20 @@ class Game:
         self, action: Action, check_only: bool = False, exclude_actions_to_previous_states: bool = True
     ):
         tmp_gs = VisibleGameState()
-        tmp_gs.CopyFrom(self.gs)
+        tmp_gs.MergeFrom(self.gs)
         tmp_hgs = HiddenGameState()
-        tmp_hgs.CopyFrom(self.hgs)
+        tmp_hgs.MergeFrom(self.hgs)
 
         # Try apply the action
         if not _try_apply_action(gs=tmp_gs, hgs=tmp_hgs, action=action):
-            assert game_state_id_b58c(self.gs) == game_state_id_b58c(tmp_gs)
+            assert game_state_id(self.gs) == game_state_id(tmp_gs)
             return False
-        assert game_state_id_b58c(self.gs) != game_state_id_b58c(tmp_gs)
+
+        new_gs_serialized = tmp_gs.SerializeToString()
+        assert game_state_id(self.gs) != game_state_id(tmp_gs)
 
         # Check for previous states
-        if exclude_actions_to_previous_states and game_state_id_b58c(tmp_gs) in self.visited_game_state_ids:
+        if exclude_actions_to_previous_states and new_gs_serialized in self.visited_game_states:
             return False
 
         # If not actually applying, done
@@ -552,10 +555,10 @@ class Game:
         self.hgs = tmp_hgs
 
         # Keep a record of what has happened
-        self.game_record.actions.add().CopyFrom(action)
+        self.game_record.actions.add().MergeFrom(action)
         self.game_record.won = self.won
         self.game_record.won_effectively = self.won_effectively
-        self.visited_game_state_ids.add(game_state_id_b58c(self.gs))
+        self.visited_game_states.add(new_gs_serialized)
 
         return True
 
@@ -570,7 +573,7 @@ class Game:
         assert all(
             self.try_apply_action(a, check_only=True, exclude_actions_to_previous_states=False)
             for a in actions
-        ), [a for a in actions if not self.try_apply_action(a, check_only=True)]
+        )
 
         if exclude_actions_to_previous_states:
             actions = [a for a in actions if self.try_apply_action(a, True, True)]
@@ -611,6 +614,9 @@ class Game:
         assert is_valid_game_state(self.gs)
         assert all(len(s.cards) == 0 for s in self.hgs.stack)
         return True
+
+    def get_game_state_id(self):
+        return game_state_id(self.gs)
 
 
 def deal_game(seed: int = None, is_random: bool = True):

@@ -7,15 +7,15 @@ from solitaire_core.game import *
 NUMBER_RE = re.compile("^\d+$")
 
 if __name__ == "__main__":
-    g = deal_game()
+    g = deal_game(is_random=False)
 
     while True:
         actions = g.get_valid_actions()
 
         os.system("clear")
         print(text_renderer.render(g.gs, actions))
-        print("game_state_id", game_state_id_b58c(g.gs))
-        print("len(g.visited_game_state_ids)", len(g.visited_game_state_ids))
+        print("game_state_id", game_state_id(g.gs))
+        print("len(g.visited_game_states)", len(g.visited_game_states))
         print("len(g.game_record.actions)", len(g.game_record.actions))
         print("Won:", g.won)
         print("Won effectively:", g.won_effectively)

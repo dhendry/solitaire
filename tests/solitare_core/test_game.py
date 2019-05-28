@@ -514,5 +514,84 @@ class GameTest(TestCase):
         self.assertTrue(g.won)
         self.assertTrue(g.won_effectively)
 
-    # def test_cant_repeate_state(self):
+    # def test_must_remove_from_top_of_suit_stack(self):
     #     # TODO
+
+    def test_cant_repeate_state(self):
+        g = deal_game(is_random=False)
+        for _ in range(7):
+            g.apply_action(Action(type=TO_SS_S, suit=CLUBS))
+        # +------------------------------------------------------------------------+
+        # |                  +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--|
+        # |                  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+        # |                  |A |A |A |2 |2 |2 |3 |3 |3 |4 |4 |4 |5 |5 |5 |6 |6 |6 |
+        # |                  |♦ |♥ |♠ |♦ |♥ |♠ |♦ |♥ |♠ |♦ |♥ |♠ |♦ |♥ |♠ |♦ |♥ |♠ |
+        # |                  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+        # |                  +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--|
+        # |             0        1        2        3        4        5        6    |
+        # | +-----+  +-----+  +-----+  +-----+  +-----+  +-----+  +-----+  +-----+ |
+        # | | 7 ♣ |  | K ♠ |  +-----+  +-----+  +-----+  +-----+  +-----+  +-----+ |
+        # | |     |  |     |  | Q ♣ |  +-----+  +-----+  +-----+  +-----+  +-----+ |
+        # | |     |  |     |  |     |  | 10♥ |  +-----+  +-----+  +-----+  +-----+ |
+        # | +-----+  +-----+  |     |  |     |  | 9 ♦ |  +-----+  +-----+  +-----+ |
+        # |                   +-----+  |     |  |     |  | 8 ♦ |  +-----+  +-----+ |
+        # | +-----+                    +-----+  |     |  |     |  | 7 ♥ |  | 7 ♦ | |
+        # | |   ♦ |                             +-----+  |     |  |     |  |     | |
+        # | |     |                                      +-----+  |     |  |     | |
+        # | |     |                                               +-----+  +-----+ |
+        # | +-----+                                                                |
+        # |                                                                        |
+        # | +-----+                                                                |
+        # | |   ♥ |                                                                |
+        # | |     |                                                                |
+        # | |     |                                                                |
+        # | +-----+                                                                |
+        # |                                                                        |
+        # | +-----+                                                                |
+        # | |   ♠ |                                                                |
+        # | |     |                                                                |
+        # | |     |                                                                |
+        # | +-----+                                                                |
+        # +------------------------------------------------------------------------+
+
+        # Check the current state matches what we expect
+        self.assertTrue(is_valid_game_state(g.gs))
+        self.assertEqual(get_bitmask(HEARTS, SEVEN), g.gs.build_stacks[5])
+        self.assertEqual(get_bitmask(DIAMONDS, SEVEN), g.gs.build_stacks[6])
+        self.assertEqual(7, len(g.game_record.actions))
+        self.assertEqual(7, len(g.visited_game_states))
+
+        # Six of spades to the 6th stack
+        g.apply_action(Action(type=TALON_S_TO_BS_N, suit=SPADES, build_stack_dest=6))
+        self.assertTrue(is_valid_game_state(g.gs))
+        self.assertEqual(get_bitmask(HEARTS, SEVEN), g.gs.build_stacks[5])
+        self.assertEqual(get_bitmask(DIAMONDS, SEVEN) | get_bitmask(SPADES, SIX), g.gs.build_stacks[6])
+        self.assertEqual(8, len(g.game_record.actions))
+        self.assertEqual(8, len(g.visited_game_states))
+
+        # Six of spades to the 5th stack
+        g.apply_action(Action(type=BS_N_TO_BS_N, build_stack_src=6, build_stack_dest=5))
+        self.assertTrue(is_valid_game_state(g.gs))
+        self.assertEqual(get_bitmask(HEARTS, SEVEN) | get_bitmask(SPADES, SIX), g.gs.build_stacks[5])
+        self.assertEqual(get_bitmask(DIAMONDS, SEVEN), g.gs.build_stacks[6])
+        self.assertEqual(9, len(g.game_record.actions))
+        self.assertEqual(9, len(g.visited_game_states))
+
+        # Block reversing the last action
+        res = g.try_apply_action(Action(type=BS_N_TO_BS_N, build_stack_src=5, build_stack_dest=6))
+        self.assertFalse(res)
+        self.assertEqual(get_bitmask(HEARTS, SEVEN) | get_bitmask(SPADES, SIX), g.gs.build_stacks[5])
+        self.assertEqual(get_bitmask(DIAMONDS, SEVEN), g.gs.build_stacks[6])
+        self.assertEqual(9, len(g.game_record.actions))
+        self.assertEqual(9, len(g.visited_game_states))
+
+        # ... but not when we explicitly alllow it
+        res = g.try_apply_action(
+            Action(type=BS_N_TO_BS_N, build_stack_src=5, build_stack_dest=6),
+            exclude_actions_to_previous_states=False,
+        )
+        self.assertTrue(res)
+        self.assertEqual(get_bitmask(HEARTS, SEVEN), g.gs.build_stacks[5])
+        self.assertEqual(get_bitmask(DIAMONDS, SEVEN) | get_bitmask(SPADES, SIX), g.gs.build_stacks[6])
+        self.assertEqual(10, len(g.game_record.actions))
+        self.assertEqual(9, len(g.visited_game_states))
