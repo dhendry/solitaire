@@ -5,8 +5,6 @@ import random
 
 from typing import Generator, List, Set
 
-import base58
-
 from .game_state_pb2 import *
 
 logger = logging.getLogger(__name__)
@@ -66,6 +64,31 @@ RANK_MASK = {
     r: functools.reduce(lambda a, s: a | get_bitmask(s, r), Suit.values()[1:], 0)
     for r in CardRank.values()[1:]
 }
+
+# Contains the set of all possible actions. This is really needed for the one hot encoding but putting it in
+# this file so we can do asserts they are all valid
+_ALL_ACTIONS = [
+    *[Action(type=TO_SS_S, suit=s) for s in Suit.values()[1:]],
+    *[
+        Action(type=BS_N_TO_BS_N, build_stack_src=src, build_stack_dest=dest)
+        for src in range(7)
+        for dest in range(7)
+        if src != dest
+    ],
+    *[
+        Action(type=TALON_S_TO_BS_N, suit=s, build_stack_dest=dest)
+        for s in Suit.values()[1:]
+        for dest in range(7)
+    ],
+    *[
+        Action(type=SS_S_TO_BS_N, suit=s, build_stack_dest=dest)
+        for s in Suit.values()[1:]
+        for dest in range(7)
+    ],
+]
+
+_ALL_ACTIONS_BYTES_TO_IDX = {a.SerializeToString(): i for i, a in enumerate(_ALL_ACTIONS)}
+assert len(_ALL_ACTIONS) == len(_ALL_ACTIONS_BYTES_TO_IDX)
 
 
 def card_idx_to_bitmask(card_idx: int) -> int:
@@ -247,6 +270,8 @@ def is_valid_game_state(gs: VisibleGameState) -> bool:
 
 
 def _try_apply_action(gs: VisibleGameState, hgs: HiddenGameState, action: Action) -> bool:
+    assert action.SerializeToString() in _ALL_ACTIONS_BYTES_TO_IDX, action
+
     if action.type == TO_SS_S:
         assert CLUBS <= action.suit <= SPADES, action.suit
         assert 0 == action.build_stack_src
@@ -510,6 +535,9 @@ class Game:
     hgs: HiddenGameState
 
     game_record: GameRecord
+
+    # Note that after some benchmarking, it looks like just keeping the entire game state byte array around
+    # is significantly faster than any kind of hashing
     visited_game_states: Set[bytes]
 
     def __init__(self, current_state: VisibleGameState, current_hidden_state: HiddenGameState):
@@ -525,6 +553,8 @@ class Game:
         result = self.try_apply_action(action)
         if not result:
             raise Exception(f"Could not apply action {action}")
+
+        assert is_valid_game_state(self.gs)
 
     def try_apply_action(
         self, action: Action, check_only: bool = False, exclude_actions_to_previous_states: bool = True

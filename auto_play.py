@@ -3,6 +3,10 @@ import time
 from solitaire_core.game import *
 
 TO_EFFECTIVE_WIN = True
+# Win rate @5 = ~19%
+# Win rate @2 = ~22%
+# Win rate @1 = ~23%
+WEIGHTING_BIAS = 1
 
 
 def play_move(game: Game) -> bool:
@@ -11,7 +15,8 @@ def play_move(game: Game) -> bool:
     if len(actions) == 0:
         return False
 
-    weighted_actions = {(3 / (i + 3)): a for i, a in enumerate(actions)}
+    # Weighted bias is somewhat arbitrary
+    weighted_actions = {(WEIGHTING_BIAS / (i + WEIGHTING_BIAS)): a for i, a in enumerate(actions)}
 
     selection = random.random() * sum(weighted_actions.keys())
     current_sum = 0
@@ -56,7 +61,8 @@ class StatTracker:
             f"Won:{str(self.games_won).rjust(5)}  \t"
             f"Lost:{str(self.games_lost).rjust(5)}  \t"
             f"Total moves:{str(self.total_moves_made).rjust(7)}  \t"
-            f"moves/s:{str(round((self.total_moves_made - self.last_total_moves_made)/since_last, 2)).rjust(7)}  \t"
+            f"moves/s:{str(round((self.total_moves_made - self.last_total_moves_made)/since_last, 2)).rjust(7)}  \t",
+            f"Win rate:{str(round(self.games_won/max(self.games_played, 1), 2)).rjust(6)}  \t",
         )
         self.last_total_moves_made = self.total_moves_made
         self.last_stat_update = time.time()

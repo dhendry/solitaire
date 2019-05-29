@@ -6,16 +6,27 @@ name = "pypi"
 [packages]
 protobuf = "*"
 numpy = "*"
-mypy-protobuf = "*"
-base58 = "*"
+pandas = "*"
 SQLAlchemy = "*"
+keras = "*"
+tensorflow = "*"
+scikit-learn = "*"
+mypy-extensions = "*"
 
 [dev-packages]
 coverage = "*"
 pytest = "*"
 black = "==19.3b0"
-mypy-extensions = "*"
+mypy = "*"
+mypy-protobuf = "*"
 isort = "*"
+# Altair 3 requires jupyterlab >= 1 which is unreleased as of May 10th 2019
+# https://github.com/altair-viz/altair/issues/1479#issuecomment-489875310
+jupyterlab = "==1.0.0a3"
+altair = "*"
+tabulate = "*"
+matplotlib = "*"
+seaborn = "*"
 
 [requires]
 python_version = "3.7"

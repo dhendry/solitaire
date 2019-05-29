@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
 .DEFAULT_GOAL := help
-.PHONY: clean init proto format test all-local
+.PHONY: clean init proto format typecheck test all-local
 
 clean: ## Very basic clean functionality
 	rm -rf dist/ build/ .mypy_cache/ .pytest_cache/ collected_static/ .coverage db.sqlite3
@@ -29,10 +29,16 @@ format: ## Autoformat
 	source $(shell pipenv --venv)/bin/activate && isort --atomic -rc -y . $(EXTRA_FLAGS) && deactivate
 	pipenv run black --safe --line-length=110 . $(EXTRA_FLAGS)
 
-test: proto format ## Just run unit tests.
+typecheck: ## Run mypy
+	env MYPYPATH="$(shell ls -d $$(pipenv --venv)/src/* | paste -sd ':' -)" pipenv run mypy --strict --config-file=mypy.ini \
+		-p solitaire_core \
+		-p solitaire_ai
+
+# TODO: Add typecheck dep
+test: proto format ## Just run unit tests (no init)
 	pipenv run pytest -v  tests/ --durations=50
 
-all-local: init proto format test ## Execute all local setup, build and test steps. This is probably the command you are looking for.
+all-local: init proto format typecheck test ## Execute all local setup, build and test steps. This is probably the command you are looking for.
 
 play: proto format test ## Play CLI game
 	pipenv run python cli_game.py
