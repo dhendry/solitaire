@@ -3,7 +3,8 @@
 
 .pytest_cache/
 .mypy_cache/
+.ipynb_checkpoints/
 
-**/__pycache__/*
+__pycache__/
 
 test.log

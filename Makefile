@@ -43,6 +43,9 @@ all-local: init proto format typecheck test ## Execute all local setup, build an
 play: proto format test ## Play CLI game
 	pipenv run python cli_game.py
 
+run-jupyter: proto ## Run Jupyter
+	pipenv run jupyter lab
+
 # Self-Documented Makefile see https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help: ## When you just dont know what to do with your life, look for inspiration here!
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)

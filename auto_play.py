@@ -1,4 +1,6 @@
 import time
+from datetime import datetime
+import base64
 
 from solitaire_core.game import *
 
@@ -73,17 +75,22 @@ if __name__ == "__main__":
 
     g = deal_game()
 
-    while True:
-        if TO_EFFECTIVE_WIN and g.won_effectively or g.won:
-            stats.mark_won(g.game_record)
-            g = deal_game()
-            continue
+    date = datetime.now().strftime("%y-%m-%d-%H-%M-%S")
 
-        if not play_move(g):
-            stats.mark_lost(g.game_record)
-            g = deal_game()
-            continue
+    with open(f"{date}-win-game-records.b64", "w") as f:
+        f.read()
+        while True:
+            if TO_EFFECTIVE_WIN and g.won_effectively or g.won:
+                stats.mark_won(g.game_record)
+                f.write(base64.b64encode(g.game_record.SerializeToString()).decode("utf-8") + "\n")
+                g = deal_game()
+                continue
 
-        assert is_valid_game_state(g.gs), g.get_game_state_id()
+            if not play_move(g):
+                stats.mark_lost(g.game_record)
+                g = deal_game()
+                continue
 
-        stats.mark_move()
+            assert is_valid_game_state(g.gs), g.get_game_state_id()
+
+            stats.mark_move()

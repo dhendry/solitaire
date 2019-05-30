@@ -1,4 +1,3 @@
-import random
 from unittest import TestCase
 
 from solitaire_ai import vectorization
@@ -37,3 +36,32 @@ class VectorizationTest(TestCase):
         self.assertTrue(g.won_effectively)
 
         self.assertEqual(len(g.visited_game_states), len(seen_state_vectors))
+
+    def test_action_to_onehot(self):
+        seen_vectors = set()
+        for i, a in enumerate(game._ALL_ACTIONS):
+            # Convert to tuple to make it hashable
+            action_onehot = tuple(vectorization.action_to_onehot(a))
+
+            # Convert it back to an action
+            self.assertEqual(a, vectorization.onehot_to_action(action_onehot))
+
+            self.assertNotIn(action_onehot, seen_vectors)
+            seen_vectors.add(action_onehot)
+
+            for j, elem in enumerate(action_onehot):
+                if i == j:
+                    self.assertEqual(1, elem)
+                else:
+                    self.assertEqual(0, elem)
+
+        self.assertEqual(len(seen_vectors), len(game._ALL_ACTIONS))
+
+    def test_action_to_onehot_chooses_greatest(self):
+        vec = [0.1 for _ in range(len(game._ALL_ACTIONS))]
+        vec[0] = 0.5
+        vec[1] = 0.8
+        vec[2] = 0.8  # Choose the first
+        vec[3] = 0.7
+
+        self.assertEqual(game._ALL_ACTIONS[1], vectorization.onehot_to_action(vec))
