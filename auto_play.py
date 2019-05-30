@@ -78,7 +78,6 @@ if __name__ == "__main__":
     date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
     with open(f"{date}-win-game-records.b64", "w") as f:
-        f.read()
         while True:
             if TO_EFFECTIVE_WIN and g.won_effectively or g.won:
                 stats.mark_won(g.game_record)
