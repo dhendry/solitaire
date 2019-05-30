@@ -1,6 +1,6 @@
+import base64
 import time
 from datetime import datetime
-import base64
 
 from solitaire_core.game import *
 
@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     g = deal_game()
 
-    date = datetime.now().strftime("%y-%m-%d-%H-%M-%S")
+    date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
     with open(f"{date}-win-game-records.b64", "w") as f:
         f.read()

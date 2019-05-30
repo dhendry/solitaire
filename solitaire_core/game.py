@@ -546,6 +546,7 @@ class Game:
 
         self.game_record = GameRecord()
         self.game_record.initial_state.MergeFrom(self.gs)
+        self.game_record.initial_hidden_state.MergeFrom(self.hgs)
 
         self.visited_game_states = set()
 

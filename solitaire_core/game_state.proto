@@ -82,8 +82,10 @@ message Action {
 
 message GameRecord {
     VisibleGameState initial_state = 1;
-    repeated Action actions = 2;
+    HiddenGameState initial_hidden_state = 2;
 
-    bool won = 3;
-    bool won_effectively = 4;
+    repeated Action actions = 5;
+
+    bool won = 10;
+    bool won_effectively = 11;
 }
