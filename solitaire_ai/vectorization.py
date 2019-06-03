@@ -1,6 +1,6 @@
 import itertools
 
-from typing import List
+from typing import List, Optional
 
 from solitaire_core import game
 
@@ -43,14 +43,23 @@ def action_to_onehot(action: game.Action) -> List[float]:
     return onehot_vector
 
 
-def onehot_to_action(one_hot: List[float]) -> game.Action:
+def onehot_to_action(one_hot: List[float], acceptable_actions: Optional[List[game.Action]] = None) -> game.Action:
+    assert acceptable_actions is None or len(acceptable_actions) > 0
+
+    acceptable_action_idxs = set()
+    if acceptable_actions:
+        for a in acceptable_actions:
+            acceptable_action_idxs.add(game._ALL_ACTIONS_BYTES_TO_IDX[a.SerializeToString()])
+    else:
+        acceptable_action_idxs = set(game._ALL_ACTIONS_BYTES_TO_IDX.values())
+
     # Find the greatest element in the array - not its not exactly a "onehot"
     max_value = 0
     max_value_idx = -1
 
     for i, v in enumerate(one_hot):
         assert v <= 1
-        if v > max_value:
+        if v > max_value and i in acceptable_action_idxs:
             max_value = v
             max_value_idx = i
 
