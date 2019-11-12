@@ -12,6 +12,7 @@ keras = "*"
 tensorflow = "*"
 scikit-learn = "*"
 mypy-extensions = "*"
+numba = "*"
 
 [dev-packages]
 coverage = "*"
@@ -20,9 +21,7 @@ black = "==19.3b0"
 mypy = "*"
 mypy-protobuf = "*"
 isort = "*"
-# Altair 3 requires jupyterlab >= 1 which is unreleased as of May 10th 2019
-# https://github.com/altair-viz/altair/issues/1479#issuecomment-489875310
-jupyterlab = "==1.0.0a3"
+jupyterlab = "*"
 altair = "*"
 tabulate = "*"
 matplotlib = "*"
